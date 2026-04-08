@@ -35,7 +35,7 @@ object AppUpdater {
      * }
      */
     private const val VERSION_URL =
-        "https://raw.githubusercontent.com/ВАШ_НИК/pushapp/main/version.json"
+        "https://raw.githubusercontent.com/Vademzip/push-app/master/version.json"
 
     /** Возвращает UpdateInfo если доступна новая версия, иначе null. */
     suspend fun checkForUpdate(): UpdateInfo? = withContext(Dispatchers.IO) {
