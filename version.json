@@ -1,6 +1,6 @@
 {
-  "versionCode": 3,
-  "versionName": "0.0.7",
+  "versionCode": 4,
+  "versionName": "0.0.8",
   "downloadUrl": "https://github.com/Vademzip/push-app/releases/download/v0.0.7/app-release.apk",
   "releaseNotes": "Исправлен скролл на экране настроек"
 }
