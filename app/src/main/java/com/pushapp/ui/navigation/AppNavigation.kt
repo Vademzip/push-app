@@ -26,7 +26,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.pushapp.ui.screens.*
-import com.pushapp.ui.theme.AppAccent
 import com.pushapp.ui.theme.AppBackground
 import com.pushapp.ui.theme.AppNavBar
 import com.pushapp.ui.theme.AppOnSurfaceVar
@@ -50,7 +49,8 @@ private val bottomNavItems = listOf(
 fun AppNavigation(
     authViewModel: AuthViewModel,
     workoutViewModel: WorkoutViewModel,
-    onUserLoggedIn: () -> Unit = {}
+    onUserLoggedIn: () -> Unit = {},
+    onAccentChanged: (String) -> Unit = {}
 ) {
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
 
@@ -61,12 +61,20 @@ fun AppNavigation(
     if (!isLoggedIn) {
         AuthScreen(authViewModel = authViewModel)
     } else {
-        MainScaffold(authViewModel = authViewModel, workoutViewModel = workoutViewModel)
+        MainScaffold(
+            authViewModel    = authViewModel,
+            workoutViewModel = workoutViewModel,
+            onAccentChanged  = onAccentChanged
+        )
     }
 }
 
 @Composable
-private fun MainScaffold(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewModel) {
+private fun MainScaffold(
+    authViewModel: AuthViewModel,
+    workoutViewModel: WorkoutViewModel,
+    onAccentChanged: (String) -> Unit = {}
+) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -106,7 +114,7 @@ private fun MainScaffold(authViewModel: AuthViewModel, workoutViewModel: Workout
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor   = AppBackground,
                                 unselectedIconColor = AppOnSurfaceVar,
-                                indicatorColor      = AppAccent
+                                indicatorColor      = MaterialTheme.colorScheme.primary
                             )
                         )
                     }
@@ -124,7 +132,7 @@ private fun MainScaffold(authViewModel: AuthViewModel, workoutViewModel: Workout
             composable(Screen.History.route)  { HistoryScreen(workoutViewModel) }
             composable(Screen.Calendar.route) { CalendarScreen(authViewModel, workoutViewModel) }
             composable(Screen.Compare.route)  { CompareScreen(authViewModel, workoutViewModel) }
-            composable(Screen.Settings.route) { SettingsScreen() }
+            composable(Screen.Settings.route) { SettingsScreen(onAccentChanged = onAccentChanged) }
         }
     }
 }

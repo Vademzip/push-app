@@ -2,34 +2,38 @@ package com.pushapp.ui.theme
 
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-
-private val DarkColorScheme = darkColorScheme(
-    primary              = AppAccent,
-    onPrimary            = AppBackground,
-    primaryContainer     = AppAccentDim,
-    onPrimaryContainer   = AppAccent,
-    secondary            = AppSurfaceBright,
-    onSecondary          = AppOnBackground,
-    secondaryContainer   = AppSurfaceVariant,
-    onSecondaryContainer = AppOnBackground,
-    tertiary             = AppAccent,
-    onTertiary           = AppBackground,
-    background           = AppBackground,
-    onBackground         = AppOnBackground,
-    surface              = AppSurface,
-    onSurface            = AppOnSurface,
-    surfaceVariant       = AppSurfaceVariant,
-    onSurfaceVariant     = AppOnSurfaceVar,
-    error                = AppError,
-    onError              = AppBackground,
-    outline              = AppSurfaceBright,
-    outlineVariant       = AppSurfaceVariant,
-)
+import androidx.compose.ui.graphics.Color
 
 @Composable
-fun PushAppTheme(content: @Composable () -> Unit) {
+fun PushAppTheme(
+    accent: Color = AppAccent,
+    accentDim: Color = AppAccentDim,
+    content: @Composable () -> Unit
+) {
+    val colorScheme = darkColorScheme(
+        primary              = accent,
+        onPrimary            = AppBackground,
+        primaryContainer     = accentDim,
+        onPrimaryContainer   = accent,
+        secondary            = AppSurfaceBright,
+        onSecondary          = AppOnBackground,
+        secondaryContainer   = AppSurfaceVariant,
+        onSecondaryContainer = AppOnBackground,
+        tertiary             = accent,
+        onTertiary           = AppBackground,
+        background           = AppBackground,
+        onBackground         = AppOnBackground,
+        surface              = AppSurface,
+        onSurface            = AppOnSurface,
+        surfaceVariant       = AppSurfaceVariant,
+        onSurfaceVariant     = AppOnSurfaceVar,
+        error                = AppError,
+        onError              = AppBackground,
+        outline              = AppSurfaceBright,
+        outlineVariant       = AppSurfaceVariant,
+    )
     MaterialTheme(
-        colorScheme = DarkColorScheme,
+        colorScheme = colorScheme,
         typography  = Typography,
         content     = content
     )

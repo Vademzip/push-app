@@ -48,7 +48,7 @@ fun CalendarScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewMo
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Календарь") }) }
+        topBar = { TopAppBar(title = { Text("Календарь") }, colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)) }
     ) { padding ->
         Column(
             modifier = Modifier

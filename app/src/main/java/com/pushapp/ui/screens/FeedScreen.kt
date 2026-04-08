@@ -30,7 +30,7 @@ fun FeedScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewModel)
     LaunchedEffect(Unit) { workoutViewModel.loadFeed() }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Лента", fontSize = 28.sp, fontWeight = FontWeight.Bold) }) }
+        topBar = { TopAppBar(title = { Text("Лента", fontSize = 28.sp, fontWeight = FontWeight.Bold) }, colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)) }
     ) { padding ->
         when {
             isLoading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {

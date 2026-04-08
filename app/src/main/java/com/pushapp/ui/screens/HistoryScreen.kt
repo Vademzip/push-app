@@ -45,7 +45,7 @@ fun HistoryScreen(workoutViewModel: WorkoutViewModel) {
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("История") }) }
+        topBar = { TopAppBar(title = { Text("История") }, colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)) }
     ) { padding ->
         Column(
             modifier = Modifier

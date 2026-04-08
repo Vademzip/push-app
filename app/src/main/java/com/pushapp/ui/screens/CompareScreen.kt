@@ -38,7 +38,7 @@ fun CompareScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewMod
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Сравнение") }) }
+        topBar = { TopAppBar(title = { Text("Сравнение") }, colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)) }
     ) { padding ->
         Column(
             modifier = Modifier

@@ -61,7 +61,10 @@ fun HomeScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewModel)
                         IconButton(onClick = { authViewModel.logout() }) {
                             Icon(Icons.Default.Logout, contentDescription = "Выйти")
                         }
-                    }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    )
                 )
             },
             floatingActionButton = {
