@@ -1,0 +1,41 @@
+# Android build
+*.iml
+.gradle/
+local.properties
+.DS_Store
+build/
+app/build/
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.ap_
+
+# IntelliJ / Android Studio
+.idea/
+*.iws
+out/
+!.idea/modules.xml
+!.idea/runConfigurations/
+
+# Keystore — никогда не коммить!
+*.jks
+*.keystore
+release/
+
+# Firebase — содержит приватные ключи проекта
+app/google-services.json
+
+# Gradle caches
+.gradle/
+gradle/wrapper/gradle-wrapper.jar
+
+# Kotlin
+*.class
+
+# Java heap dumps (создаются при краше Studio)
+*.hprof
+
+# Claude Code
+.claude/

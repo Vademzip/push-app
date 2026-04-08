@@ -1,0 +1,3 @@
+-keepattributes Signature
+-keepattributes *Annotation*
+-keepclassmembers class com.pushapp.model.** { *; }
