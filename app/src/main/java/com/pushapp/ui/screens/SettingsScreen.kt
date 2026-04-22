@@ -48,10 +48,23 @@ fun SettingsScreen(onAccentChanged: (String) -> Unit = {}) {
 
     var selectedAccent   by remember { mutableStateOf(ThemePrefs.getKey(context)) }
 
-    // Состояние проверки обновлений
+    // Состояние проверки и скачивания обновлений
     var updateChecking   by remember { mutableStateOf(false) }
     var updateInfo       by remember { mutableStateOf<UpdateInfo?>(null) }
     var updateChecked    by remember { mutableStateOf(false) }
+    var downloadId       by remember { mutableStateOf<Long?>(null) }
+    var downloadProgress by remember { mutableStateOf<Float?>(null) }
+
+    // Опрашиваем прогресс скачивания
+    LaunchedEffect(downloadId) {
+        val id = downloadId ?: return@LaunchedEffect
+        while (true) {
+            val progress = AppUpdater.getDownloadProgress(context, id)
+            downloadProgress = progress
+            if (progress == null) break
+            kotlinx.coroutines.delay(300)
+        }
+    }
 
     // Диалог выбора времени
     if (showTimePicker) {
@@ -254,11 +267,36 @@ fun SettingsScreen(onAccentChanged: (String) -> Unit = {}) {
                                 )
                             }
                             Spacer(Modifier.height(12.dp))
-                            Button(
-                                onClick  = { AppUpdater.downloadAndInstall(context, updateInfo!!) },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape    = RoundedCornerShape(50.dp)
-                            ) { Text("Скачать и установить") }
+                            when {
+                                downloadProgress != null -> {
+                                    Text(
+                                        text = "Скачивание… ${(downloadProgress!! * 100).toInt()}%",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Spacer(Modifier.height(6.dp))
+                                    LinearProgressIndicator(
+                                        progress = { downloadProgress!! },
+                                        modifier = Modifier.fillMaxWidth(),
+                                    )
+                                }
+                                downloadId != null && downloadProgress == null -> {
+                                    Text(
+                                        text = "Скачано! Открываем установщик…",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                                else -> {
+                                    Button(
+                                        onClick = {
+                                            downloadId = AppUpdater.downloadAndInstall(context, updateInfo!!)
+                                        },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        shape = RoundedCornerShape(50.dp)
+                                    ) { Text("Скачать и установить") }
+                                }
+                            }
                         }
                     }
 

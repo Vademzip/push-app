@@ -92,9 +92,10 @@ fun HomeScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewModel)
                 Text(text = dateStr, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(32.dp))
                 when {
-                    isTodayLoading          -> TodaySkeleton()
-                    todayWorkout != null    -> TodayCard(entry = todayWorkout!!)
-                    else                    -> EmptyToday()
+                    isTodayLoading                -> TodaySkeleton()
+                    todayWorkout?.skipped == true -> RestDayCard(entry = todayWorkout!!)
+                    todayWorkout != null          -> TodayCard(entry = todayWorkout!!)
+                    else                          -> EmptyToday()
                 }
 
                 if (weeklyInsight != null) {
@@ -113,9 +114,13 @@ fun HomeScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewModel)
                 initialPushups = todayWorkout?.pushups ?: 0,
                 initialSquats = todayWorkout?.squats ?: 0,
                 initialPullups = todayWorkout?.pullups ?: 0,
+                initialAbs = todayWorkout?.abs ?: 0,
                 initialComment = todayWorkout?.comment ?: "",
-                onSave = { pushups, squats, pullups, comment ->
-                    workoutViewModel.saveWorkout(pushups, squats, pullups, currentUser?.username ?: "", comment)
+                onSave = { pushups, squats, pullups, abs, comment, skipped ->
+                    workoutViewModel.saveWorkout(
+                        pushups, squats, pullups, abs,
+                        currentUser?.username ?: "", comment, skipped
+                    )
                     showInputFlow = false
                 },
                 onDismiss = { showInputFlow = false }
@@ -139,9 +144,13 @@ private fun TodayCard(entry: WorkoutEntry) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            BigStatCard("💪", entry.pushups, "Аужуманиа", Modifier.weight(1f))
+            BigStatCard("💪", entry.pushups, "Отжимания", Modifier.weight(1f))
             BigStatCard("🦵", entry.squats, "Приседания", Modifier.weight(1f))
             BigStatCard("🏋️", entry.pullups, "Подтягивания", Modifier.weight(1f))
+        }
+        if (entry.abs > 0) {
+            Spacer(Modifier.height(12.dp))
+            BigStatCard("🔥", entry.abs, "Пресс", Modifier.fillMaxWidth())
         }
         if (entry.comment.isNotBlank()) {
             Card(
@@ -155,6 +164,47 @@ private fun TodayCard(entry: WorkoutEntry) {
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RestDayCard(entry: WorkoutEntry) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            text = "Сегодня",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(text = "😴", fontSize = 56.sp)
+                Text(
+                    text = "День отдыха",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                if (entry.comment.isNotBlank()) {
+                    Text(
+                        text = "\"${entry.comment}\"",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }

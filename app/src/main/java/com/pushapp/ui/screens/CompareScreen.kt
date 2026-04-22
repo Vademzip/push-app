@@ -89,7 +89,6 @@ fun CompareScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewMod
             // Выбор периода
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf(
-                    HistoryPeriod.DAY to "День",
                     HistoryPeriod.WEEK to "Неделя",
                     HistoryPeriod.MONTH to "Месяц"
                 ).forEach { (p, label) ->
@@ -122,15 +121,20 @@ fun CompareScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewMod
                     val myName = currentUser?.username ?: "Я"
                     val otherName = selectedUser?.username ?: "Другой"
 
-                    val myTotals = Triple(
-                        myEntries.sumOf { it.pushups },
-                        myEntries.sumOf { it.squats },
-                        myEntries.sumOf { it.pullups }
+                    val myActive    = myEntries.filter { !it.skipped }
+                    val otherActive = otherEntries.filter { !it.skipped }
+
+                    val myTotals = listOf(
+                        myActive.sumOf { it.pushups },
+                        myActive.sumOf { it.squats },
+                        myActive.sumOf { it.pullups },
+                        myActive.sumOf { it.abs }
                     )
-                    val otherTotals = Triple(
-                        otherEntries.sumOf { it.pushups },
-                        otherEntries.sumOf { it.squats },
-                        otherEntries.sumOf { it.pullups }
+                    val otherTotals = listOf(
+                        otherActive.sumOf { it.pushups },
+                        otherActive.sumOf { it.squats },
+                        otherActive.sumOf { it.pullups },
+                        otherActive.sumOf { it.abs }
                     )
 
                     CompareTable(
@@ -149,9 +153,11 @@ fun CompareScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewMod
 fun CompareTable(
     myName: String,
     otherName: String,
-    myTotals: Triple<Int, Int, Int>,
-    otherTotals: Triple<Int, Int, Int>
+    myTotals: List<Int>,
+    otherTotals: List<Int>
 ) {
+    val labels = listOf("Отжимания", "Приседания", "Подтягивания", "Пресс")
+
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
             // Шапка
@@ -172,17 +178,15 @@ fun CompareTable(
             }
             HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
 
-            CompareRow("Отжимания", myTotals.first, otherTotals.first)
-            Spacer(Modifier.height(10.dp))
-            CompareRow("Приседания", myTotals.second, otherTotals.second)
-            Spacer(Modifier.height(10.dp))
-            CompareRow("Подтягивания", myTotals.third, otherTotals.third)
+            labels.forEachIndexed { i, label ->
+                if (i > 0) Spacer(Modifier.height(10.dp))
+                CompareRow(label, myTotals[i], otherTotals[i])
+            }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
 
-            // Итого
-            val mySum = myTotals.first + myTotals.second + myTotals.third
-            val otherSum = otherTotals.first + otherTotals.second + otherTotals.third
+            val mySum = myTotals.sum()
+            val otherSum = otherTotals.sum()
             CompareRow("ИТОГО", mySum, otherSum, bold = true)
         }
     }

@@ -1,5 +1,6 @@
 package com.pushapp.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
@@ -23,36 +24,37 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.pushapp.ui.theme.*
 import kotlin.math.abs
 import kotlinx.coroutines.launch
 
 private data class WorkoutStep(val label: String, val emoji: String, val maxValue: Int)
 
 private val steps = listOf(
-    WorkoutStep("Аужуманиа", "💪", 500),
+    WorkoutStep("Отжимания", "💪", 500),
     WorkoutStep("Приседания", "🦵", 500),
-    WorkoutStep("Подтягивания", "🏋️", 200)
+    WorkoutStep("Подтягивания", "🏋️", 200),
+    WorkoutStep("Пресс", "🔥", 500)
 )
 
-/**
- * Полноэкранный флоу добавления тренировки.
- * Показывается без Dialog — просто поверх контента в HomeScreen.
- */
 @Composable
 fun WorkoutInputFlow(
     initialPushups: Int = 0,
     initialSquats: Int = 0,
     initialPullups: Int = 0,
+    initialAbs: Int = 0,
     initialComment: String = "",
-    onSave: (pushups: Int, squats: Int, pullups: Int, comment: String) -> Unit,
+    onSave: (pushups: Int, squats: Int, pullups: Int, abs: Int, comment: String, skipped: Boolean) -> Unit,
     onDismiss: () -> Unit
 ) {
     var currentStep by remember { mutableStateOf(0) }
-    val values = remember { mutableStateListOf(initialPushups, initialSquats, initialPullups) }
+    val values = remember { mutableStateListOf(initialPushups, initialSquats, initialPullups, initialAbs) }
     var comment by remember { mutableStateOf(initialComment) }
+    var isSkipped by remember { mutableStateOf(false) }
 
-    // Заполняем весь экран фоном приложения
+    BackHandler { onDismiss() }
+
+    val totalSteps = 5 // 4 упражнения + комментарий
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -72,7 +74,7 @@ fun WorkoutInputFlow(
                 Icon(Icons.Default.Close, contentDescription = "Закрыть")
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                repeat(4) { i ->
+                repeat(totalSteps) { i ->
                     Box(
                         modifier = Modifier
                             .size(if (i == currentStep) 10.dp else 8.dp)
@@ -89,7 +91,7 @@ fun WorkoutInputFlow(
             Box(Modifier.size(48.dp))
         }
 
-        // ── Скроллируемый контент (занимает всё свободное место) ───────────────
+        // ── Скроллируемый контент ───────────────────────────────────────────
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -107,11 +109,12 @@ fun WorkoutInputFlow(
                 },
                 label = "step"
             ) { step ->
-                if (step < 3) {
+                if (step < 4) {
                     ExercisePickerStep(
                         step = steps[step],
                         currentValue = values[step],
-                        onValueChange = { values[step] = it }
+                        onValueChange = { values[step] = it },
+                        isSkipped = isSkipped
                     )
                 } else {
                     CommentStep(comment = comment, onCommentChange = { comment = it })
@@ -121,28 +124,51 @@ fun WorkoutInputFlow(
             Spacer(Modifier.height(24.dp))
         }
 
-        // ── Кнопка — вне зоны скролла, всегда видна ──────────────────────────
-        Button(
-            onClick = {
-                if (currentStep < 3) currentStep++
-                else onSave(values[0], values[1], values[2], comment)
-            },
+        // ── Кнопки ────────────────────────────────────────────────────────────
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 32.dp, vertical = 16.dp)
-                .height(58.dp),
-            shape = RoundedCornerShape(50.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor   = MaterialTheme.colorScheme.onPrimary
-            ),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
+                .padding(horizontal = 32.dp)
+                .padding(bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(
-                text       = if (currentStep < 3) "Далее" else "Сохранить",
-                fontSize   = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Button(
+                onClick = {
+                    if (currentStep < totalSteps - 1) currentStep++
+                    else onSave(values[0], values[1], values[2], values[3], comment, isSkipped)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(58.dp),
+                shape = RoundedCornerShape(50.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
+            ) {
+                Text(
+                    text = if (currentStep < totalSteps - 1) "Далее" else "Сохранить",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            if (!isSkipped) {
+                TextButton(
+                    onClick = {
+                        isSkipped = true
+                        values[0] = 0; values[1] = 0; values[2] = 0; values[3] = 0
+                        currentStep = totalSteps - 1 // сразу к комментарию
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Сегодня не тренировался",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
         }
     }
 }
@@ -151,7 +177,8 @@ fun WorkoutInputFlow(
 private fun ExercisePickerStep(
     step: WorkoutStep,
     currentValue: Int,
-    onValueChange: (Int) -> Unit
+    onValueChange: (Int) -> Unit,
+    isSkipped: Boolean
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -164,13 +191,27 @@ private fun ExercisePickerStep(
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
-        Text(
-            text = "листай влево/вправо",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        if (isSkipped) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = "Отдых — значения сброшены",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        } else {
+            Text(
+                text = "листай влево/вправо",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
         Spacer(Modifier.height(28.dp))
-        DrumPicker(value = currentValue, maxValue = step.maxValue, onValueChange = onValueChange)
+        DrumPicker(
+            value = currentValue,
+            maxValue = step.maxValue,
+            onValueChange = onValueChange,
+            enabled = !isSkipped
+        )
     }
 }
 
@@ -178,7 +219,9 @@ private fun ExercisePickerStep(
 private fun CommentStep(comment: String, onCommentChange: (String) -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 32.dp)
     ) {
         Text(text = "💬", fontSize = 72.sp)
         Spacer(Modifier.height(8.dp))
@@ -194,23 +237,23 @@ private fun CommentStep(comment: String, onCommentChange: (String) -> Unit) {
         )
         Spacer(Modifier.height(28.dp))
         OutlinedTextField(
-            value         = comment,
+            value = comment,
             onValueChange = { if (it.length <= 200) onCommentChange(it) },
-            modifier      = Modifier.fillMaxWidth(),
-            placeholder   = { Text("Как прошла тренировка?", color = AppOnSurfaceVar) },
-            minLines      = 3,
-            maxLines      = 5,
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("Как прошла тренировка?", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+            minLines = 3,
+            maxLines = 5,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            shape         = RoundedCornerShape(20.dp),
-            colors        = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor      = AppAccent,
-                unfocusedBorderColor    = AppSurfaceBright,
-                focusedLabelColor       = AppAccent,
-                cursorColor             = AppAccent,
-                focusedTextColor        = AppOnBackground,
-                unfocusedTextColor      = AppOnBackground,
-                focusedContainerColor   = AppSurfaceVariant,
-                unfocusedContainerColor = AppSurfaceVariant,
+            shape = RoundedCornerShape(20.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                cursorColor = MaterialTheme.colorScheme.primary,
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             )
         )
     }
@@ -218,7 +261,7 @@ private fun CommentStep(comment: String, onCommentChange: (String) -> Unit) {
 
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-fun DrumPicker(value: Int, maxValue: Int, onValueChange: (Int) -> Unit) {
+fun DrumPicker(value: Int, maxValue: Int, onValueChange: (Int) -> Unit, enabled: Boolean = true) {
     val itemWidth = 100.dp
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     val sidePadding = (screenWidth - itemWidth) / 2
@@ -228,7 +271,7 @@ fun DrumPicker(value: Int, maxValue: Int, onValueChange: (Int) -> Unit) {
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(listState.isScrollInProgress) {
-        if (!listState.isScrollInProgress) {
+        if (!listState.isScrollInProgress && enabled) {
             val center = listState.firstVisibleItemIndex +
                     if (listState.firstVisibleItemScrollOffset > 0) 1 else 0
             val snapped = center.coerceIn(0, maxValue)
@@ -243,7 +286,10 @@ fun DrumPicker(value: Int, maxValue: Int, onValueChange: (Int) -> Unit) {
     }
 
     Box(
-        modifier = Modifier.fillMaxWidth().height(160.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(160.dp)
+            .alpha(if (enabled) 1f else 0.38f),
         contentAlignment = Alignment.Center
     ) {
         Box(
@@ -256,7 +302,10 @@ fun DrumPicker(value: Int, maxValue: Int, onValueChange: (Int) -> Unit) {
             state = listState,
             flingBehavior = flingBehavior,
             contentPadding = PaddingValues(horizontal = sidePadding),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(if (!enabled) Modifier else Modifier),
+            userScrollEnabled = enabled
         ) {
             items(maxValue + 1) { num ->
                 val dist = abs(

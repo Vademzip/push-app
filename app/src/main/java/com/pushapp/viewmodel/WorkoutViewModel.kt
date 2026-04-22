@@ -91,7 +91,15 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun saveWorkout(pushups: Int, squats: Int, pullups: Int, username: String, comment: String = "") {
+    fun saveWorkout(
+        pushups: Int,
+        squats: Int,
+        pullups: Int,
+        abs: Int,
+        username: String,
+        comment: String = "",
+        skipped: Boolean = false
+    ) {
         val uid = authRepo.currentUserId ?: return
         val entry = WorkoutEntry(
             userId    = uid,
@@ -100,7 +108,9 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
             pushups   = pushups,
             squats    = squats,
             pullups   = pullups,
+            abs       = abs,
             comment   = comment,
+            skipped   = skipped,
             timestamp = System.currentTimeMillis()
         )
         viewModelScope.launch {
@@ -108,12 +118,18 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
             _saveSuccess.value = result.isSuccess
             if (result.isSuccess) {
                 _todayWorkout.value = entry
-                computeWeeklyInsight(uid, pushups, squats, pullups)
+                if (!skipped) computeWeeklyInsight(uid, pushups, squats, pullups, abs)
             }
         }
     }
 
-    private suspend fun computeWeeklyInsight(uid: String, todayPushups: Int, todaySquats: Int, todayPullups: Int) {
+    private suspend fun computeWeeklyInsight(
+        uid: String,
+        todayPushups: Int,
+        todaySquats: Int,
+        todayPullups: Int,
+        todayAbs: Int
+    ) {
         val fmt       = DateTimeFormatter.ISO_LOCAL_DATE
         val yesterday = LocalDate.now().minusDays(1).format(fmt)
         val weekAgo   = LocalDate.now().minusDays(7).format(fmt)
@@ -134,9 +150,10 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
             }
         }
 
-        check(todayPushups, { it.pushups },  "Отжимания",    "💪")
-        check(todaySquats,  { it.squats },   "Приседания",   "🦵")
-        check(todayPullups, { it.pullups },  "Подтягивания", "🏋️")
+        check(todayPushups, { it.pushups }, "Отжимания",    "💪")
+        check(todaySquats,  { it.squats },  "Приседания",   "🦵")
+        check(todayPullups, { it.pullups }, "Подтягивания", "🏋️")
+        check(todayAbs,     { it.abs },     "Пресс",        "🔥")
 
         if (lines.isNotEmpty()) {
             _weeklyInsight.value = lines.joinToString("\n")
@@ -152,8 +169,16 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
     fun loadFeed() {
         viewModelScope.launch {
             _isLoading.value = true
-            _feed.value = workoutRepo.getFeed()
+            val entries = workoutRepo.getFeed()
+            _feed.value = entries
             _isLoading.value = false
+            // Предзагрузка комментариев для первых 10 записей
+            entries.take(10).forEach { entry ->
+                launch {
+                    val list = workoutRepo.getComments(entry.id)
+                    _comments.value = _comments.value + (entry.id to list)
+                }
+            }
         }
     }
 

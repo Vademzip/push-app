@@ -1,6 +1,8 @@
 package com.pushapp.ui.navigation
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -78,23 +80,29 @@ private fun MainScaffold(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val floatingShape = RoundedCornerShape(32.dp)
+    val pillShape = RoundedCornerShape(50)
 
     Scaffold(
         containerColor = AppBackground,
         bottomBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 12.dp)
-            ) {
+            // Внешний Box без clip — иконки никогда не обрезаются
+            Box(modifier = Modifier.fillMaxWidth()) {
+                // Слой 1: только фон с тенью и скруглением (clip только здесь)
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .padding(horizontal = 20.dp, vertical = 12.dp)
+                        .shadow(elevation = 20.dp, shape = pillShape, ambientColor = AppBackground)
+                        .clip(pillShape)
+                        .background(AppNavBar)
+                )
+                // Слой 2: NavigationBar поверх — прозрачный, БЕЗ clip
                 NavigationBar(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(60.dp)
-                        .shadow(elevation = 24.dp, shape = floatingShape, ambientColor = AppBackground)
-                        .clip(floatingShape),
-                    containerColor = AppNavBar,
+                        .height(84.dp) // 60dp бар + 12dp отступ сверху и снизу
+                        .padding(horizontal = 24.dp, vertical = 12.dp),
+                    containerColor = androidx.compose.ui.graphics.Color.Transparent,
                     tonalElevation = 0.dp,
                     windowInsets   = WindowInsets(0)
                 ) {

@@ -56,14 +56,17 @@ object AppUpdater {
         }
     }
 
-    /** Запускает скачивание APK через системный DownloadManager и устанавливает по завершении. */
-    fun downloadAndInstall(context: Context, info: UpdateInfo) {
+    /**
+     * Запускает скачивание APK. Возвращает downloadId для отслеживания прогресса.
+     * По завершении автоматически открывает установщик.
+     */
+    fun downloadAndInstall(context: Context, info: UpdateInfo): Long {
         val fileName = "pushapp-${info.versionName}.apk"
 
         val request = DownloadManager.Request(Uri.parse(info.downloadUrl))
             .setTitle("PushApp ${info.versionName}")
             .setDescription("Скачивание обновления…")
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN)
             .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
             .setMimeType("application/vnd.android.package-archive")
             .setAllowedOverMetered(true)
@@ -72,7 +75,6 @@ object AppUpdater {
         val dm = context.getSystemService(DownloadManager::class.java)
         val downloadId = dm.enqueue(request)
 
-        // Слушаем завершение скачивания
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(ctx: Context, intent: Intent) {
                 val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
@@ -95,5 +97,29 @@ object AppUpdater {
             IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
             ContextCompat.RECEIVER_NOT_EXPORTED
         )
+
+        return downloadId
+    }
+
+    /** Опрашивает DownloadManager и возвращает прогресс от 0f до 1f, или null если завершено/ошибка. */
+    fun getDownloadProgress(context: Context, downloadId: Long): Float? {
+        val dm = context.getSystemService(DownloadManager::class.java)
+        val query = DownloadManager.Query().setFilterById(downloadId)
+        val cursor = dm.query(query) ?: return null
+        return try {
+            if (!cursor.moveToFirst()) return null
+            val statusCol = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS)
+            val status = cursor.getInt(statusCol)
+            if (status == DownloadManager.STATUS_SUCCESSFUL) return null
+            if (status == DownloadManager.STATUS_FAILED) return null
+
+            val totalCol = cursor.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)
+            val downloadedCol = cursor.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)
+            val total = cursor.getLong(totalCol)
+            val downloaded = cursor.getLong(downloadedCol)
+            if (total <= 0) 0f else (downloaded.toFloat() / total.toFloat()).coerceIn(0f, 1f)
+        } finally {
+            cursor.close()
+        }
     }
 }

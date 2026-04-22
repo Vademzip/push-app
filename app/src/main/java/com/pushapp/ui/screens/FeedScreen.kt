@@ -133,13 +133,36 @@ fun FeedCard(
                 )
             }
             Spacer(Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                if (entry.pushups > 0) FeedStat("💪", entry.pushups, "ауж.", Modifier.weight(1f))
-                if (entry.squats > 0) FeedStat("🦵", entry.squats, "прис.", Modifier.weight(1f))
-                if (entry.pullups > 0) FeedStat("🏋️", entry.pullups, "подт.", Modifier.weight(1f))
+            if (entry.skipped) {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f)
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text("😴", fontSize = 22.sp)
+                        Text(
+                            text = "День отдыха",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    if (entry.pushups > 0) FeedStat("💪", entry.pushups, "ауж.", Modifier.weight(1f))
+                    if (entry.squats > 0) FeedStat("🦵", entry.squats, "прис.", Modifier.weight(1f))
+                    if (entry.pullups > 0) FeedStat("🏋️", entry.pullups, "подт.", Modifier.weight(1f))
+                    if (entry.abs > 0) FeedStat("🔥", entry.abs, "пресс", Modifier.weight(1f))
+                }
             }
             if (entry.comment.isNotBlank()) {
                 Spacer(Modifier.height(12.dp))
@@ -197,7 +220,12 @@ fun FeedCard(
                             placeholder = { Text("Написать комментарий…", style = MaterialTheme.typography.bodySmall) },
                             modifier = Modifier.weight(1f),
                             singleLine = true,
-                            shape = RoundedCornerShape(16.dp)
+                            shape = RoundedCornerShape(16.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                                cursorColor = MaterialTheme.colorScheme.primary,
+                            )
                         )
                         Spacer(Modifier.width(8.dp))
                         IconButton(
