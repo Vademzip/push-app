@@ -1,14 +1,19 @@
 package com.pushapp.util
 
 import android.app.DownloadManager
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
+import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.pushapp.BuildConfig
+import com.pushapp.notification.NotificationHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -66,7 +71,7 @@ object AppUpdater {
         val request = DownloadManager.Request(Uri.parse(info.downloadUrl))
             .setTitle("PushApp ${info.versionName}")
             .setDescription("Скачивание обновления…")
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN)
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
             .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
             .setMimeType("application/vnd.android.package-archive")
             .setAllowedOverMetered(true)
@@ -87,7 +92,24 @@ object AppUpdater {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
-                ctx.startActivity(install)
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    val pending = PendingIntent.getActivity(
+                        ctx, 0, install,
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    )
+                    val notification = NotificationCompat.Builder(ctx, NotificationHelper.CHANNEL_ID)
+                        .setSmallIcon(android.R.drawable.stat_sys_download_done)
+                        .setContentTitle("PushApp ${info.versionName} готова к установке")
+                        .setContentText("Нажмите для установки")
+                        .setContentIntent(pending)
+                        .setAutoCancel(true)
+                        .build()
+                    ctx.getSystemService(NotificationManager::class.java)
+                        .notify(1003, notification)
+                } else {
+                    ctx.startActivity(install)
+                }
             }
         }
 
