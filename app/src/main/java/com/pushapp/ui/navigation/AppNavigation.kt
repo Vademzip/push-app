@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -68,6 +69,7 @@ fun AppNavigation(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun MainScaffold(
     authViewModel: AuthViewModel,
@@ -115,10 +117,14 @@ private fun MainScaffold(
             }
         }
     ) { innerPadding ->
+        val noSwipePages = setOf(
+            bottomNavItems.indexOf(Screen.History),
+            bottomNavItems.indexOf(Screen.Compare)
+        )
         HorizontalPager(
-            state    = pagerState,
-            modifier = Modifier.padding(innerPadding),
-            beyondViewportPageCount = 1
+            state             = pagerState,
+            modifier          = Modifier.padding(innerPadding),
+            userScrollEnabled = pagerState.currentPage !in noSwipePages
         ) { page ->
             when (bottomNavItems[page]) {
                 Screen.Home     -> HomeScreen(authViewModel, workoutViewModel)
