@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="6" by="lint 8.7.3" type="baseline" client="gradle" dependencies="false" name="AGP (8.7.3)" variant="fatal" version="8.7.3">
+<issues format="6" by="lint 8.7.3" type="baseline" client="gradle" dependencies="false" name="AGP (8.7.3)" variant="all" version="8.7.3">
 
     <issue
         id="InvalidFragmentVersionForActivityResult"
@@ -8,7 +8,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -19,7 +19,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -30,7 +30,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -41,7 +41,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -52,7 +52,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -63,7 +63,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -74,7 +74,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -85,7 +85,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -96,7 +96,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -107,7 +107,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -118,7 +118,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -129,7 +129,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -140,7 +140,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -151,7 +151,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -162,7 +162,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -173,7 +173,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -184,7 +184,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -195,7 +195,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -206,7 +206,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -217,7 +217,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -228,7 +228,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -239,7 +239,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -250,7 +250,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -261,7 +261,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -272,7 +272,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -283,7 +283,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -294,7 +294,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -305,7 +305,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -316,7 +316,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -327,7 +327,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -338,7 +338,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -349,7 +349,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -360,7 +360,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -371,7 +371,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -382,7 +382,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -393,7 +393,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -404,7 +404,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -415,7 +415,7 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
     </issue>
 
@@ -426,8 +426,213 @@
         errorLine2="                                                 ^">
         <location
             file="src/main/java/com/pushapp/MainActivity.kt"
-            line="27"
+            line="38"
             column="50"/>
+    </issue>
+
+    <issue
+        id="InvalidFragmentVersionForActivityResult"
+        message="Upgrade Fragment version to at least 1.3.0."
+        errorLine1="    private val notificationPermissionLauncher = registerForActivityResult("
+        errorLine2="                                                 ^">
+        <location
+            file="src/main/java/com/pushapp/MainActivity.kt"
+            line="38"
+            column="50"/>
+    </issue>
+
+    <issue
+        id="RedundantLabel"
+        message="Redundant label can be removed"
+        errorLine1="            android:label=&quot;@string/app_name&quot;"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/AndroidManifest.xml"
+            line="22"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.core:core-ktx than 1.12.0 is available: 1.18.0"
+        errorLine1="    implementation(&quot;androidx.core:core-ktx:1.12.0&quot;)"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="45"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.lifecycle:lifecycle-runtime-ktx than 2.7.0 is available: 2.10.0"
+        errorLine1="    implementation(&quot;androidx.lifecycle:lifecycle-runtime-ktx:2.7.0&quot;)"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="46"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.activity:activity-compose than 1.8.2 is available: 1.13.0"
+        errorLine1="    implementation(&quot;androidx.activity:activity-compose:1.8.2&quot;)"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="47"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.compose:compose-bom than 2024.02.02 is available: 2026.04.01"
+        errorLine1="    implementation(platform(&quot;androidx.compose:compose-bom:2024.02.02&quot;))"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="49"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.navigation:navigation-compose than 2.7.7 is available: 2.9.8"
+        errorLine1="    implementation(&quot;androidx.navigation:navigation-compose:2.7.7&quot;)"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="56"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.lifecycle:lifecycle-viewmodel-compose than 2.7.0 is available: 2.10.0"
+        errorLine1="    implementation(&quot;androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0&quot;)"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="57"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.lifecycle:lifecycle-runtime-compose than 2.7.0 is available: 2.10.0"
+        errorLine1="    implementation(&quot;androidx.lifecycle:lifecycle-runtime-compose:2.7.0&quot;)"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="58"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of com.google.firebase:firebase-bom than 32.8.0 is available: 34.12.0"
+        errorLine1="    implementation(platform(&quot;com.google.firebase:firebase-bom:32.8.0&quot;))"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="60"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.work:work-runtime-ktx than 2.9.0 is available: 2.11.2"
+        errorLine1="    implementation(&quot;androidx.work:work-runtime-ktx:2.9.0&quot;)"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="64"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="ObsoleteSdkInt"
+        message="This folder configuration (`v26`) is unnecessary; `minSdkVersion` is 26. Merge all the resources in this folder into `mipmap-anydpi`.">
+        <location
+            file="src/main/res/mipmap-anydpi-v26"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var displayHour         by remember { mutableStateOf(savedHour) }"
+        errorLine2="                                          ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pushapp/ui/screens/SettingsScreen.kt"
+            line="54"
+            column="43"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var displayMinute       by remember { mutableStateOf(savedMinute) }"
+        errorLine2="                                          ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pushapp/ui/screens/SettingsScreen.kt"
+            line="55"
+            column="43"/>
+    </issue>
+
+    <issue
+        id="AutoboxingStateCreation"
+        message="Prefer `mutableIntStateOf` instead of `mutableStateOf`"
+        errorLine1="    var currentStep by remember { mutableStateOf(0) }"
+        errorLine2="                                  ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pushapp/ui/screens/WorkoutInputFlow.kt"
+            line="49"
+            column="35"/>
+    </issue>
+
+    <issue
+        id="FrequentlyChangedStateReadInComposition"
+        message="Frequently changing state should not be directly read in composable function"
+        errorLine1="                    num - (listState.firstVisibleItemIndex +"
+        errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pushapp/ui/screens/WorkoutInputFlow.kt"
+            line="313"
+            column="28"/>
+    </issue>
+
+    <issue
+        id="FrequentlyChangedStateReadInComposition"
+        message="Frequently changing state should not be directly read in composable function"
+        errorLine1="                            if (listState.firstVisibleItemScrollOffset > (itemWidth / 2).value) 1 else 0)"
+        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/com/pushapp/ui/screens/WorkoutInputFlow.kt"
+            line="314"
+            column="33"/>
+    </issue>
+
+    <issue
+        id="MonochromeLauncherIcon"
+        message="The application adaptive icon is missing a monochrome tag"
+        errorLine1="&lt;adaptive-icon xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;>"
+        errorLine2="^">
+        <location
+            file="src/main/res/mipmap-anydpi-v26/ic_launcher.xml"
+            line="2"
+            column="1"/>
+    </issue>
+
+    <issue
+        id="MonochromeLauncherIcon"
+        message="The application adaptive roundIcon is missing a monochrome tag"
+        errorLine1="&lt;adaptive-icon xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;>"
+        errorLine2="^">
+        <location
+            file="src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml"
+            line="2"
+            column="1"/>
     </issue>
 
 </issues>

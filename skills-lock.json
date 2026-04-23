@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "mobile-android-design": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "f664cf000475eb1fb2e61dfdbdfd311cca595154ddc63e76ac6444a07b86346a"
+    }
+  }
+}

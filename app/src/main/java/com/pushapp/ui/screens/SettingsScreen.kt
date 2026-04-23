@@ -10,13 +10,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.ChatBubble
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -24,10 +27,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pushapp.BuildConfig
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import com.pushapp.notification.CommentCheckWorker
 import com.pushapp.notification.NotificationHelper
 import com.pushapp.util.AppUpdater
 import com.pushapp.util.ThemePrefs
 import com.pushapp.util.UpdateInfo
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,8 +51,10 @@ fun SettingsScreen(onAccentChanged: (String) -> Unit = {}) {
         is24Hour      = true
     )
     var showTimePicker   by remember { mutableStateOf(false) }
-    var displayHour      by remember { mutableStateOf(savedHour) }
-    var displayMinute    by remember { mutableStateOf(savedMinute) }
+    var displayHour         by remember { mutableStateOf(savedHour) }
+    var displayMinute       by remember { mutableStateOf(savedMinute) }
+    var notifEnabled        by remember { mutableStateOf(NotificationHelper.isReminderEnabled(context)) }
+    var commentNotifEnabled by remember { mutableStateOf(NotificationHelper.isCommentNotifEnabled(context)) }
 
     var selectedAccent   by remember { mutableStateOf(ThemePrefs.getKey(context)) }
 
@@ -73,7 +83,7 @@ fun SettingsScreen(onAccentChanged: (String) -> Unit = {}) {
             confirmButton = {
                 TextButton(onClick = {
                     NotificationHelper.saveNotificationTime(context, timePickerState.hour, timePickerState.minute)
-                    NotificationHelper.scheduleDailyReminder(context)
+                    if (notifEnabled) NotificationHelper.scheduleDailyReminder(context)
                     displayHour   = timePickerState.hour
                     displayMinute = timePickerState.minute
                     showTimePicker = false
@@ -124,10 +134,39 @@ fun SettingsScreen(onAccentChanged: (String) -> Unit = {}) {
                 shape    = RoundedCornerShape(20.dp),
                 colors   = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
             ) {
+                // Ежедневное напоминание
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { showTimePicker = true }
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.Notifications, contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        "Ежедневное напоминание",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Switch(
+                        checked = notifEnabled,
+                        onCheckedChange = { enabled ->
+                            NotificationHelper.setReminderEnabled(context, enabled)
+                            notifEnabled = enabled
+                            if (enabled) NotificationHelper.scheduleDailyReminder(context)
+                            else NotificationHelper.cancelReminder(context)
+                        }
+                    )
+                }
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                // Время напоминания
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .alpha(if (notifEnabled) 1f else 0.38f)
+                        .then(if (notifEnabled) Modifier.clickable { showTimePicker = true } else Modifier)
                         .padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -145,6 +184,50 @@ fun SettingsScreen(onAccentChanged: (String) -> Unit = {}) {
                     }
                     Icon(Icons.Default.ChevronRight, contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                // Уведомления о комментариях
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.ChatBubble, contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            "Уведомления о комментариях",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            "Когда кто-то комментирует твою тренировку",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = commentNotifEnabled,
+                        onCheckedChange = { enabled ->
+                            NotificationHelper.setCommentNotifEnabled(context, enabled)
+                            commentNotifEnabled = enabled
+                            val wm = WorkManager.getInstance(context)
+                            if (enabled) {
+                                val request = PeriodicWorkRequestBuilder<CommentCheckWorker>(
+                                    15, TimeUnit.MINUTES
+                                ).addTag(NotificationHelper.COMMENT_WORK_TAG).build()
+                                wm.enqueueUniquePeriodicWork(
+                                    NotificationHelper.COMMENT_WORK_TAG,
+                                    ExistingPeriodicWorkPolicy.KEEP,
+                                    request
+                                )
+                            } else {
+                                wm.cancelAllWorkByTag(NotificationHelper.COMMENT_WORK_TAG)
+                            }
+                        }
+                    )
                 }
             }
 

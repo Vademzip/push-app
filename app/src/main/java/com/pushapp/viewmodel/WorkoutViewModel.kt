@@ -153,7 +153,7 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
         check(todayPushups, { it.pushups }, "Отжимания",    "💪")
         check(todaySquats,  { it.squats },  "Приседания",   "🦵")
         check(todayPullups, { it.pullups }, "Подтягивания", "🏋️")
-        check(todayAbs,     { it.abs },     "Пресс",        "🔥")
+        check(todayAbs,     { it.abs },     "Пресс",        "🤸")
 
         if (lines.isNotEmpty()) {
             _weeklyInsight.value = lines.joinToString("\n")

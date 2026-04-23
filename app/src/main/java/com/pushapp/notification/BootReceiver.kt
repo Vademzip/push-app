@@ -11,7 +11,8 @@ class BootReceiver : BroadcastReceiver() {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED &&
             FirebaseAuth.getInstance().currentUser != null
         ) {
-            NotificationHelper.scheduleDailyReminder(context)
+            if (NotificationHelper.isReminderEnabled(context))
+                NotificationHelper.scheduleDailyReminder(context)
         }
     }
 }

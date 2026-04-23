@@ -12,8 +12,8 @@ android {
         applicationId = "com.pushapp"
         minSdk = 26
         targetSdk = 35
-        versionCode = 5
-        versionName = "0.1.0"
+        versionCode = 6
+        versionName = "0.1.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
     }
@@ -60,6 +60,8 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:32.8.0"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
+
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")

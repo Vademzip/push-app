@@ -161,7 +161,7 @@ fun FeedCard(
                     if (entry.pushups > 0) FeedStat("💪", entry.pushups, "ауж.", Modifier.weight(1f))
                     if (entry.squats > 0) FeedStat("🦵", entry.squats, "прис.", Modifier.weight(1f))
                     if (entry.pullups > 0) FeedStat("🏋️", entry.pullups, "подт.", Modifier.weight(1f))
-                    if (entry.abs > 0) FeedStat("🔥", entry.abs, "пресс", Modifier.weight(1f))
+                    if (entry.abs > 0) FeedStat("🤸", entry.abs, "пресс", Modifier.weight(1f))
                 }
             }
             if (entry.comment.isNotBlank()) {

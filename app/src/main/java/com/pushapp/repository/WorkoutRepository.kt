@@ -78,6 +78,19 @@ class WorkoutRepository {
         }
     }
 
+    suspend fun getUserWorkouts(userId: String): List<WorkoutEntry> {
+        return try {
+            collection
+                .whereEqualTo("userId", userId)
+                .get().await()
+                .documents.mapNotNull { it.toObject(WorkoutEntry::class.java) }
+                .sortedByDescending { it.timestamp }
+                .take(20)
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
     // Без orderBy — составной индекс не нужен. Сортировка на клиенте.
     suspend fun getUserWorkoutsForPeriod(
         userId: String,

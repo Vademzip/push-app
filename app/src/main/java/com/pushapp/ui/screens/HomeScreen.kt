@@ -84,7 +84,8 @@ fun HomeScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewModel)
                     .fillMaxSize()
                     .padding(padding)
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp),
+                    .padding(horizontal = 24.dp, vertical = 8.dp)
+                    .padding(bottom = 80.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(Modifier.height(8.dp))
@@ -146,11 +147,13 @@ private fun TodayCard(entry: WorkoutEntry) {
         ) {
             BigStatCard("💪", entry.pushups, "Отжимания", Modifier.weight(1f))
             BigStatCard("🦵", entry.squats, "Приседания", Modifier.weight(1f))
-            BigStatCard("🏋️", entry.pullups, "Подтягивания", Modifier.weight(1f))
         }
-        if (entry.abs > 0) {
-            Spacer(Modifier.height(12.dp))
-            BigStatCard("🔥", entry.abs, "Пресс", Modifier.fillMaxWidth())
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            BigStatCard("🏋️", entry.pullups, "Подтягивания", Modifier.weight(1f))
+            BigStatCard("🤸", entry.abs, "Пресс", Modifier.weight(1f))
         }
         if (entry.comment.isNotBlank()) {
             Card(
@@ -304,19 +307,21 @@ private fun TodaySkeleton() {
         // "Сегодня" label
         SkeletonBox(Modifier.width(80.dp).height(16.dp))
 
-        // Три карточки со статистикой
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            repeat(3) {
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(130.dp)
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(shimmerBrush)
-                )
+        // Сетка 2×2
+        repeat(2) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                repeat(2) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(130.dp)
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(shimmerBrush)
+                    )
+                }
             }
         }
 

@@ -8,7 +8,11 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(./gradlew assembleDebug)",
       "Bash(./gradlew assembleRelease)",
-      "Bash(gh release *)"
+      "Bash(gh release *)",
+      "Bash(npx skills *)",
+      "Bash(npx --yes skills add https://github.com/wshobson/agents --skill mobile-android-design --yes)",
+      "Bash(grep -v \"^$\")",
+      "Bash(./gradlew updateLintBaseline)"
     ]
   }
 }

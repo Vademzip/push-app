@@ -33,7 +33,7 @@ private val steps = listOf(
     WorkoutStep("Отжимания", "💪", 500),
     WorkoutStep("Приседания", "🦵", 500),
     WorkoutStep("Подтягивания", "🏋️", 200),
-    WorkoutStep("Пресс", "🔥", 500)
+    WorkoutStep("Пресс", "🤸", 500)
 )
 
 @Composable
@@ -129,7 +129,7 @@ fun WorkoutInputFlow(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 32.dp)
-                .padding(bottom = 16.dp),
+                .padding(top = 12.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Button(
@@ -256,6 +256,7 @@ private fun CommentStep(comment: String, onCommentChange: (String) -> Unit) {
                 unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             )
         )
+        Spacer(Modifier.height(16.dp))
     }
 }
 

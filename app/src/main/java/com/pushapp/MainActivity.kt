@@ -17,12 +17,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import com.pushapp.notification.CommentCheckWorker
 import com.pushapp.notification.NotificationHelper
 import com.pushapp.ui.navigation.AppNavigation
 import com.pushapp.ui.theme.PushAppTheme
 import com.pushapp.util.ThemePrefs
 import com.pushapp.viewmodel.AuthViewModel
 import com.pushapp.viewmodel.WorkoutViewModel
+import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
     private val authViewModel: AuthViewModel by viewModels()
@@ -33,7 +38,8 @@ class MainActivity : ComponentActivity() {
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
-        if (granted) NotificationHelper.scheduleDailyReminder(this)
+        if (granted && NotificationHelper.isReminderEnabled(this))
+            NotificationHelper.scheduleDailyReminder(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,7 +47,9 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         NotificationHelper.createNotificationChannel(this)
+        NotificationHelper.createCommentNotificationChannel(this)
         requestNotificationPermissionAndSchedule()
+        scheduleCommentCheckIfNeeded()
         accentKey = ThemePrefs.getKey(this)
 
         setContent {
@@ -54,7 +62,10 @@ class MainActivity : ComponentActivity() {
                     AppNavigation(
                         authViewModel    = authViewModel,
                         workoutViewModel = workoutViewModel,
-                        onUserLoggedIn   = { NotificationHelper.scheduleDailyReminder(this) },
+                        onUserLoggedIn   = {
+                            if (NotificationHelper.isReminderEnabled(this))
+                                NotificationHelper.scheduleDailyReminder(this)
+                        },
                         onAccentChanged  = { key ->
                             ThemePrefs.setKey(this, key)
                             accentKey = key
@@ -70,12 +81,26 @@ class MainActivity : ComponentActivity() {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
                 == PackageManager.PERMISSION_GRANTED
             ) {
-                NotificationHelper.scheduleDailyReminder(this)
+                if (NotificationHelper.isReminderEnabled(this))
+                    NotificationHelper.scheduleDailyReminder(this)
             } else {
                 notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         } else {
-            NotificationHelper.scheduleDailyReminder(this)
+            if (NotificationHelper.isReminderEnabled(this))
+                NotificationHelper.scheduleDailyReminder(this)
         }
+    }
+
+    private fun scheduleCommentCheckIfNeeded() {
+        if (!NotificationHelper.isCommentNotifEnabled(this)) return
+        val request = PeriodicWorkRequestBuilder<CommentCheckWorker>(15, TimeUnit.MINUTES)
+            .addTag(NotificationHelper.COMMENT_WORK_TAG)
+            .build()
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            NotificationHelper.COMMENT_WORK_TAG,
+            ExistingPeriodicWorkPolicy.KEEP,
+            request
+        )
     }
 }

@@ -1,7 +1,8 @@
 package com.pushapp.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,6 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pushapp.model.WorkoutEntry
@@ -126,7 +128,7 @@ fun HistoryScreen(workoutViewModel: WorkoutViewModel) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 TotalCard("🏋️ Подтягивания", activeEntries.sumOf { it.pullups }, Modifier.weight(1f))
-                TotalCard("🔥 Пресс", activeEntries.sumOf { it.abs }, Modifier.weight(1f))
+                TotalCard("🤸 Пресс", activeEntries.sumOf { it.abs }, Modifier.weight(1f))
             }
 
             if (entries.isEmpty()) {
@@ -219,7 +221,22 @@ internal fun BarChart(bars: List<BarData>, barColor: Color) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(120.dp),
+                .height(120.dp)
+                .pointerInput(bars) {
+                    awaitEachGesture {
+                        val barWidth = size.width.toFloat() / bars.size
+                        val down = awaitFirstDown(requireUnconsumed = false)
+                        selectedIndex = (down.position.x / barWidth).toInt().coerceIn(0, bars.size - 1)
+                        do {
+                            val event = awaitPointerEvent()
+                            val ptr = event.changes.firstOrNull { it.id == down.id } ?: break
+                            if (ptr.pressed) {
+                                selectedIndex = (ptr.position.x / barWidth).toInt().coerceIn(0, bars.size - 1)
+                            } else break
+                        } while (true)
+                        selectedIndex = null
+                    }
+                },
             verticalAlignment = Alignment.Bottom
         ) {
             bars.forEachIndexed { i, bar ->
@@ -233,7 +250,6 @@ internal fun BarChart(bars: List<BarData>, barColor: Color) {
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Bottom
                 ) {
-                    // Значение над столбиком при нажатии
                     if (isSelected) {
                         Text(
                             text = bar.value.toString(),
@@ -254,9 +270,6 @@ internal fun BarChart(bars: List<BarData>, barColor: Color) {
                             .height(barHeight)
                             .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
                             .background(if (isSelected) barColor else barColor.copy(alpha = 0.75f))
-                            .clickable {
-                                selectedIndex = if (selectedIndex == i) null else i
-                            }
                     )
                 }
             }
