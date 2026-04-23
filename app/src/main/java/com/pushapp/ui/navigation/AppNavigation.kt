@@ -2,11 +2,12 @@ package com.pushapp.ui.navigation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
@@ -22,17 +23,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import com.pushapp.ui.screens.*
 import com.pushapp.ui.theme.AppBackground
 import com.pushapp.ui.theme.AppNavBar
 import com.pushapp.ui.theme.AppOnSurfaceVar
 import com.pushapp.viewmodel.AuthViewModel
 import com.pushapp.viewmodel.WorkoutViewModel
+import kotlinx.coroutines.launch
 
 sealed class Screen(val route: String, val icon: ImageVector) {
     object Home     : Screen("home",     Icons.Default.FitnessCenter)
@@ -77,17 +74,14 @@ private fun MainScaffold(
     workoutViewModel: WorkoutViewModel,
     onAccentChanged: (String) -> Unit = {}
 ) {
-    val navController = rememberNavController()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-    val pillShape = RoundedCornerShape(50)
+    val scope      = rememberCoroutineScope()
+    val pagerState = rememberPagerState(pageCount = { bottomNavItems.size })
+    val pillShape  = RoundedCornerShape(50)
 
     Scaffold(
         containerColor = AppBackground,
         bottomBar = {
-            // Внешний Box без clip — иконки никогда не обрезаются
             Box(modifier = Modifier.fillMaxWidth()) {
-                // Слой 1: только фон с тенью и скруглением (clip только здесь)
                 Box(
                     modifier = Modifier
                         .matchParentSize()
@@ -96,30 +90,21 @@ private fun MainScaffold(
                         .clip(pillShape)
                         .background(AppNavBar)
                 )
-                // Слой 2: NavigationBar поверх — прозрачный, БЕЗ clip
                 NavigationBar(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(84.dp) // 60dp бар + 12dp отступ сверху и снизу
+                        .height(84.dp)
                         .padding(horizontal = 24.dp, vertical = 12.dp),
                     containerColor = androidx.compose.ui.graphics.Color.Transparent,
                     tonalElevation = 0.dp,
                     windowInsets   = WindowInsets(0)
                 ) {
-                    bottomNavItems.forEach { screen ->
+                    bottomNavItems.forEachIndexed { index, screen ->
                         NavigationBarItem(
-                            icon = { Icon(screen.icon, contentDescription = null) },
-                            selected = currentRoute == screen.route,
-                            onClick = {
-                                navController.navigate(screen.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            colors = NavigationBarItemDefaults.colors(
+                            icon     = { Icon(screen.icon, contentDescription = null) },
+                            selected = pagerState.currentPage == index,
+                            onClick  = { scope.launch { pagerState.animateScrollToPage(index) } },
+                            colors   = NavigationBarItemDefaults.colors(
                                 selectedIconColor   = AppBackground,
                                 unselectedIconColor = AppOnSurfaceVar,
                                 indicatorColor      = MaterialTheme.colorScheme.primary
@@ -130,17 +115,19 @@ private fun MainScaffold(
             }
         }
     ) { innerPadding ->
-        NavHost(
-            navController    = navController,
-            startDestination = Screen.Home.route,
-            modifier         = Modifier.padding(innerPadding)
-        ) {
-            composable(Screen.Home.route)     { HomeScreen(authViewModel, workoutViewModel) }
-            composable(Screen.Feed.route)     { FeedScreen(authViewModel, workoutViewModel) }
-            composable(Screen.History.route)  { HistoryScreen(workoutViewModel) }
-            composable(Screen.Calendar.route) { CalendarScreen(authViewModel, workoutViewModel) }
-            composable(Screen.Compare.route)  { CompareScreen(authViewModel, workoutViewModel) }
-            composable(Screen.Settings.route) { SettingsScreen(onAccentChanged = onAccentChanged) }
+        HorizontalPager(
+            state    = pagerState,
+            modifier = Modifier.padding(innerPadding),
+            beyondViewportPageCount = 1
+        ) { page ->
+            when (bottomNavItems[page]) {
+                Screen.Home     -> HomeScreen(authViewModel, workoutViewModel)
+                Screen.Feed     -> FeedScreen(authViewModel, workoutViewModel)
+                Screen.History  -> HistoryScreen(workoutViewModel)
+                Screen.Calendar -> CalendarScreen(authViewModel, workoutViewModel)
+                Screen.Compare  -> CompareScreen(authViewModel, workoutViewModel)
+                Screen.Settings -> SettingsScreen(onAccentChanged = onAccentChanged)
+            }
         }
     }
 }
