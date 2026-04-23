@@ -1,6 +1,6 @@
 {
-  "versionCode": 7,
-  "versionName": "0.1.2",
-  "downloadUrl": "https://github.com/Vademzip/push-app/releases/download/v0.1.2/app-release.apk",
-  "releaseNotes": "Добавлено пролистывание между экранами"
+  "versionCode": 8,
+  "versionName": "0.1.3",
+  "downloadUrl": "https://github.com/Vademzip/push-app/releases/download/v0.1.3/app-release.apk",
+  "releaseNotes": " Улучшения \n  - Листание между экранами свайпом — проводи пальцем влево/вправо                                                          \n  - На графиках свайп не мешает скрести по столбцам — работают независимо                                                   \n  - Лёгкая вибрация при прокрутке числа в барабане          \n  - Цвета акцента получили нормальные названия\n\n  Исправления\n  - Кнопка установки обновления теперь появляется прямо в приложении после скачивания — больше не нужно искать уведомление"
 }

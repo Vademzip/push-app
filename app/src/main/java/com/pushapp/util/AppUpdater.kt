@@ -123,6 +123,17 @@ object AppUpdater {
         return downloadId
     }
 
+    /** Возвращает content URI скачанного файла если STATUS_SUCCESSFUL, иначе null. */
+    fun getDownloadedUri(context: Context, downloadId: Long): Uri? {
+        val dm = context.getSystemService(DownloadManager::class.java)
+        val cursor = dm.query(DownloadManager.Query().setFilterById(downloadId)) ?: return null
+        return try {
+            if (!cursor.moveToFirst()) return null
+            val status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS))
+            if (status == DownloadManager.STATUS_SUCCESSFUL) dm.getUriForDownloadedFile(downloadId) else null
+        } finally { cursor.close() }
+    }
+
     /** Опрашивает DownloadManager и возвращает прогресс от 0f до 1f, или null если завершено/ошибка. */
     fun getDownloadProgress(context: Context, downloadId: Long): Float? {
         val dm = context.getSystemService(DownloadManager::class.java)

@@ -117,19 +117,16 @@ private fun MainScaffold(
             }
         }
     ) { innerPadding ->
-        val noSwipePages = setOf(
-            bottomNavItems.indexOf(Screen.History),
-            bottomNavItems.indexOf(Screen.Compare)
-        )
+        var pagerScrollEnabled by remember { mutableStateOf(true) }
         HorizontalPager(
             state             = pagerState,
             modifier          = Modifier.padding(innerPadding),
-            userScrollEnabled = pagerState.currentPage !in noSwipePages
+            userScrollEnabled = pagerScrollEnabled
         ) { page ->
             when (bottomNavItems[page]) {
                 Screen.Home     -> HomeScreen(authViewModel, workoutViewModel)
                 Screen.Feed     -> FeedScreen(authViewModel, workoutViewModel)
-                Screen.History  -> HistoryScreen(workoutViewModel)
+                Screen.History  -> HistoryScreen(workoutViewModel, onChartInteraction = { pagerScrollEnabled = !it })
                 Screen.Calendar -> CalendarScreen(authViewModel, workoutViewModel)
                 Screen.Compare  -> CompareScreen(authViewModel, workoutViewModel)
                 Screen.Settings -> SettingsScreen(onAccentChanged = onAccentChanged)

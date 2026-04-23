@@ -18,7 +18,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -270,6 +272,13 @@ fun DrumPicker(value: Int, maxValue: Int, onValueChange: (Int) -> Unit, enabled:
     val listState = rememberLazyListState(initialFirstVisibleItemIndex = value)
     val flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
     val scope = rememberCoroutineScope()
+    val haptic = LocalHapticFeedback.current
+
+    LaunchedEffect(listState.firstVisibleItemIndex) {
+        if (listState.isScrollInProgress) {
+            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        }
+    }
 
     LaunchedEffect(listState.isScrollInProgress) {
         if (!listState.isScrollInProgress && enabled) {

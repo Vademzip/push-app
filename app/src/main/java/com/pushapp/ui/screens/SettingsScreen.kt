@@ -26,6 +26,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.content.Intent
+import android.net.Uri
 import com.pushapp.BuildConfig
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
@@ -64,6 +66,7 @@ fun SettingsScreen(onAccentChanged: (String) -> Unit = {}) {
     var updateChecked    by remember { mutableStateOf(false) }
     var downloadId       by remember { mutableStateOf<Long?>(null) }
     var downloadProgress by remember { mutableStateOf<Float?>(null) }
+    var downloadedUri    by remember { mutableStateOf<Uri?>(null) }
 
     // Опрашиваем прогресс скачивания
     LaunchedEffect(downloadId) {
@@ -71,7 +74,10 @@ fun SettingsScreen(onAccentChanged: (String) -> Unit = {}) {
         while (true) {
             val progress = AppUpdater.getDownloadProgress(context, id)
             downloadProgress = progress
-            if (progress == null) break
+            if (progress == null) {
+                downloadedUri = AppUpdater.getDownloadedUri(context, id)
+                break
+            }
             kotlinx.coroutines.delay(300)
         }
     }
@@ -363,17 +369,25 @@ fun SettingsScreen(onAccentChanged: (String) -> Unit = {}) {
                                         modifier = Modifier.fillMaxWidth(),
                                     )
                                 }
-                                downloadId != null && downloadProgress == null -> {
-                                    Text(
-                                        text = "Скачано! Открываем установщик…",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
+                                downloadedUri != null -> {
+                                    Button(
+                                        onClick = {
+                                            val install = Intent(Intent.ACTION_VIEW).apply {
+                                                setDataAndType(downloadedUri, "application/vnd.android.package-archive")
+                                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                            }
+                                            context.startActivity(install)
+                                        },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        shape = RoundedCornerShape(50.dp)
+                                    ) { Text("Установить") }
                                 }
                                 else -> {
                                     Button(
                                         onClick = {
-                                            downloadId = AppUpdater.downloadAndInstall(context, updateInfo!!)
+                                            downloadId   = AppUpdater.downloadAndInstall(context, updateInfo!!)
+                                            downloadedUri = null
                                         },
                                         modifier = Modifier.fillMaxWidth(),
                                         shape = RoundedCornerShape(50.dp)

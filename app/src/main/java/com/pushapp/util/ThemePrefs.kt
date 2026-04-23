@@ -10,12 +10,12 @@ object ThemePrefs {
     private const val KEY_ACCENT = "accent_key"
 
     val options = listOf(
-        AccentOption("lime",    "Лайм",       Color(0xFFC9F135), Color(0xFF1E2D07)),
-        AccentOption("pink",    "Цвет поросёнка", Color(0xFFFFB3D1), Color(0xFF2D0718)),
-        AccentOption("blue",    "Синий",      Color(0xFF5B9CF6), Color(0xFF071A2D)),
-        AccentOption("orange",  "Оранжевый",  Color(0xFFFF9F43), Color(0xFF2D1507)),
-        AccentOption("purple",  "Фиолетовый", Color(0xFFBB86FC), Color(0xFF1A0730)),
-        AccentOption("teal",    "Бирюзовый",  Color(0xFF00D2D3), Color(0xFF071F20)),
+        AccentOption("lime",    "Цвет Шрека",      Color(0xFFC9F135), Color(0xFF1E2D07)),
+        AccentOption("pink",    "Цвет поросёнка",  Color(0xFFFFB3D1), Color(0xFF2D0718)),
+        AccentOption("blue",    "Цвет спокойствия",Color(0xFF5B9CF6), Color(0xFF071A2D)),
+        AccentOption("orange",  "Цвет козявки",    Color(0xFFFF9F43), Color(0xFF2D1507)),
+        AccentOption("purple",  "Шёлковый путь",   Color(0xFFBB86FC), Color(0xFF1A0730)),
+        AccentOption("teal",    "Цвет Тиффани",    Color(0xFF00D2D3), Color(0xFF071F20)),
     )
 
     fun getKey(context: Context): String =

@@ -67,7 +67,7 @@ private fun toWeekBarData(entries: List<WorkoutEntry>, getValue: (WorkoutEntry) 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HistoryScreen(workoutViewModel: WorkoutViewModel) {
+fun HistoryScreen(workoutViewModel: WorkoutViewModel, onChartInteraction: (Boolean) -> Unit = {}) {
     val entries by workoutViewModel.historyEntries.collectAsState()
     val isLoading by workoutViewModel.isLoading.collectAsState()
     var period by remember { mutableStateOf(HistoryPeriod.WEEK) }
@@ -155,22 +155,21 @@ fun HistoryScreen(workoutViewModel: WorkoutViewModel) {
                     BarData(label, "", getValue(e))
                 }
 
-                ChartSection("Отжимания",    toBarData { it.pushups }, primary)
+                ChartSection("Отжимания",    toBarData { it.pushups }, primary,   onChartInteraction)
                 Spacer(Modifier.height(20.dp))
-                ChartSection("Приседания",   toBarData { it.squats },  secondary)
+                ChartSection("Приседания",   toBarData { it.squats },  secondary, onChartInteraction)
                 Spacer(Modifier.height(20.dp))
-                ChartSection("Подтягивания", toBarData { it.pullups }, tertiary)
+                ChartSection("Подтягивания", toBarData { it.pullups }, tertiary,  onChartInteraction)
                 Spacer(Modifier.height(20.dp))
-                ChartSection("Пресс",        toBarData { it.abs },     primary)
+                ChartSection("Пресс",        toBarData { it.abs },     primary,   onChartInteraction)
             } else {
-                // Месяц — всегда 4 недели
-                ChartSection("Отжимания",    toWeekBarData(entries) { it.pushups }, primary)
+                ChartSection("Отжимания",    toWeekBarData(entries) { it.pushups }, primary,   onChartInteraction)
                 Spacer(Modifier.height(20.dp))
-                ChartSection("Приседания",   toWeekBarData(entries) { it.squats },  secondary)
+                ChartSection("Приседания",   toWeekBarData(entries) { it.squats },  secondary, onChartInteraction)
                 Spacer(Modifier.height(20.dp))
-                ChartSection("Подтягивания", toWeekBarData(entries) { it.pullups }, tertiary)
+                ChartSection("Подтягивания", toWeekBarData(entries) { it.pullups }, tertiary,  onChartInteraction)
                 Spacer(Modifier.height(20.dp))
-                ChartSection("Пресс",        toWeekBarData(entries) { it.abs },     primary)
+                ChartSection("Пресс",        toWeekBarData(entries) { it.abs },     primary,   onChartInteraction)
             }
             Spacer(Modifier.height(16.dp))
         }
@@ -205,14 +204,14 @@ fun TotalCard(label: String, value: Int, modifier: Modifier = Modifier) {
 }
 
 @Composable
-internal fun ChartSection(title: String, bars: List<BarData>, color: Color) {
+internal fun ChartSection(title: String, bars: List<BarData>, color: Color, onChartInteraction: (Boolean) -> Unit = {}) {
     Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
     Spacer(Modifier.height(6.dp))
-    BarChart(bars = bars, barColor = color)
+    BarChart(bars = bars, barColor = color, onChartInteraction = onChartInteraction)
 }
 
 @Composable
-internal fun BarChart(bars: List<BarData>, barColor: Color) {
+internal fun BarChart(bars: List<BarData>, barColor: Color, onChartInteraction: (Boolean) -> Unit = {}) {
     if (bars.isEmpty()) return
     var selectedIndex by remember(bars) { mutableStateOf<Int?>(null) }
     val maxValue = bars.maxOf { it.value }.coerceAtLeast(1).toFloat()
@@ -226,6 +225,7 @@ internal fun BarChart(bars: List<BarData>, barColor: Color) {
                     awaitEachGesture {
                         val barWidth = size.width.toFloat() / bars.size
                         val down = awaitFirstDown(requireUnconsumed = false)
+                        onChartInteraction(true)
                         selectedIndex = (down.position.x / barWidth).toInt().coerceIn(0, bars.size - 1)
                         do {
                             val event = awaitPointerEvent()
@@ -235,6 +235,7 @@ internal fun BarChart(bars: List<BarData>, barColor: Color) {
                             } else break
                         } while (true)
                         selectedIndex = null
+                        onChartInteraction(false)
                     }
                 },
             verticalAlignment = Alignment.Bottom
