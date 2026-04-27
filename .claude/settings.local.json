@@ -12,7 +12,13 @@
       "Bash(npx skills *)",
       "Bash(npx --yes skills add https://github.com/wshobson/agents --skill mobile-android-design --yes)",
       "Bash(grep -v \"^$\")",
-      "Bash(./gradlew updateLintBaseline)"
+      "Bash(./gradlew updateLintBaseline)",
+      "Bash(python3 *)",
+      "PowerShell(Format-Hex *)",
+      "PowerShell($content = [System.IO.File]::ReadAllText\\('D:\\\\Coding\\\\MyProjects\\\\push-app\\\\app\\\\src\\\\main\\\\java\\\\com\\\\pushapp\\\\repository\\\\FriendRepository.kt', [System.Text.Encoding]::UTF8\\); $fixed = $content -replace 'whereLessThanOrEqualTo\\\\\\(\"usernameLower\", q \\\\+ \".\"\\\\\\)', 'whereLessThanOrEqualTo\\(\"usernameLower\", q + \"\"\\)'; [System.IO.File]::WriteAllText\\('D:\\\\Coding\\\\MyProjects\\\\push-app\\\\app\\\\src\\\\main\\\\java\\\\com\\\\pushapp\\\\repository\\\\FriendRepository.kt', $fixed, [System.Text.Encoding]::UTF8\\))",
+      "PowerShell($content = [System.IO.File]::ReadAllText\\('D:\\\\Coding\\\\MyProjects\\\\push-app\\\\app\\\\src\\\\main\\\\java\\\\com\\\\pushapp\\\\repository\\\\FriendRepository.kt', [System.Text.Encoding]::UTF8\\); $sentinel = [char]0xF8FF; $content = $content -replace 'q \\\\+ \".\"', \\('q + \"' + $sentinel + '\"'\\); [System.IO.File]::WriteAllText\\('D:\\\\Coding\\\\MyProjects\\\\push-app\\\\app\\\\src\\\\main\\\\java\\\\com\\\\pushapp\\\\repository\\\\FriendRepository.kt', $content, [System.Text.Encoding]::UTF8\\); Write-Host \"done\")",
+      "PowerShell($content = [System.IO.File]::ReadAllText\\('D:\\\\Coding\\\\MyProjects\\\\push-app\\\\app\\\\src\\\\main\\\\java\\\\com\\\\pushapp\\\\repository\\\\FriendRepository.kt', [System.Text.Encoding]::UTF8\\); $sentinel = [char]0xF8FF; $old = 'q + \"' + [char]0x3F + '\"'; $new = 'q + \"' + $sentinel + '\"'; Write-Host \"Old: $old, New: $new\"; $content2 = $content.Replace\\($old, $new\\); if \\($content2 -ne $content\\) { [System.IO.File]::WriteAllText\\('D:\\\\Coding\\\\MyProjects\\\\push-app\\\\app\\\\src\\\\main\\\\java\\\\com\\\\pushapp\\\\repository\\\\FriendRepository.kt', $content2, [System.Text.Encoding]::UTF8\\); Write-Host \"replaced\" } else { Write-Host \"no match\" })",
+      "PowerShell($content = [System.IO.File]::ReadAllText\\('D:\\\\Coding\\\\MyProjects\\\\push-app\\\\app\\\\src\\\\main\\\\java\\\\com\\\\pushapp\\\\repository\\\\FriendRepository.kt', [System.Text.Encoding]::UTF8\\); $idx = $content.IndexOf\\('whereLessThanOrEqualTo'\\); $snippet = $content.Substring\\($idx, 50\\); Write-Host \"Snippet: [$snippet]\"; $snippet | ForEach-Object { $_.ToCharArray\\(\\) | ForEach-Object { Write-Host \"U+$\\([int]$_\\):$_\" } })"
     ]
   }
 }

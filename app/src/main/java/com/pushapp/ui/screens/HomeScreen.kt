@@ -9,7 +9,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,7 +28,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewModel) {
+fun HomeScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewModel, onInputActive: (Boolean) -> Unit = {}) {
     val currentUser    by authViewModel.currentUser.collectAsState()
     val todayWorkout   by workoutViewModel.todayWorkout.collectAsState()
     val isTodayLoading by workoutViewModel.isTodayLoading.collectAsState()
@@ -42,6 +41,7 @@ fun HomeScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewModel)
         .format(DateTimeFormatter.ofPattern("d MMMM, EEEE", Locale("ru")))
 
     LaunchedEffect(Unit) { workoutViewModel.loadTodayWorkout() }
+    LaunchedEffect(showInputFlow) { onInputActive(showInputFlow) }
 
     LaunchedEffect(saveSuccess) {
         when (saveSuccess) {
@@ -54,19 +54,6 @@ fun HomeScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewModel)
     Box(modifier = Modifier.fillMaxSize()) {
         // ── Основной экран ──────────────────────────────────────────────────
         Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = {},
-                    actions = {
-                        IconButton(onClick = { authViewModel.logout() }) {
-                            Icon(Icons.Default.Logout, contentDescription = "Выйти")
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.background
-                    )
-                )
-            },
             floatingActionButton = {
                 if (!showInputFlow) {
                     ExtendedFloatingActionButton(

@@ -17,7 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.pushapp.viewmodel.AuthViewModel
+import com.pushapp.viewmodel.FriendViewModel
 import com.pushapp.viewmodel.WorkoutViewModel
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -27,20 +27,17 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CalendarScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewModel) {
-    val currentUser by authViewModel.currentUser.collectAsState()
-    val allUsers by workoutViewModel.allUsers.collectAsState()
+fun CalendarScreen(workoutViewModel: WorkoutViewModel, friendViewModel: FriendViewModel) {
     val myDates by workoutViewModel.calendarMyDates.collectAsState()
     val friendDates by workoutViewModel.calendarFriendDates.collectAsState()
     val selectedFriend by workoutViewModel.selectedCalendarFriend.collectAsState()
+    val friends by friendViewModel.friends.collectAsState()
 
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
     var dropdownExpanded by remember { mutableStateOf(false) }
 
-    val otherUsers = allUsers.filter { it.uid != currentUser?.uid }
-
-    LaunchedEffect(Unit) {
-        workoutViewModel.loadAllUsers()
+    LaunchedEffect(friends) {
+        workoutViewModel.restoreCalendarFriend(friends)
     }
 
     LaunchedEffect(currentMonth, selectedFriend) {
@@ -82,11 +79,18 @@ fun CalendarScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewMo
                             dropdownExpanded = false
                         }
                     )
-                    otherUsers.forEach { user ->
+                    if (friends.isEmpty()) {
                         DropdownMenuItem(
-                            text = { Text(user.username) },
+                            text    = { Text("Нет друзей") },
+                            onClick = { dropdownExpanded = false },
+                            enabled = false
+                        )
+                    }
+                    friends.forEach { friend ->
+                        DropdownMenuItem(
+                            text = { Text(friend.username) },
                             onClick = {
-                                workoutViewModel.selectCalendarFriend(user)
+                                workoutViewModel.selectCalendarFriendByUid(friend.uid, friend.username)
                                 dropdownExpanded = false
                             }
                         )

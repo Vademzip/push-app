@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChatBubble
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Notifications
@@ -42,7 +43,11 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(onAccentChanged: (String) -> Unit = {}) {
+fun SettingsScreen(
+    onAccentChanged: (String) -> Unit = {},
+    onBack: () -> Unit = {},
+    onLogout: () -> Unit = {}
+) {
     val context = LocalContext.current
     val scope   = rememberCoroutineScope()
 
@@ -111,6 +116,11 @@ fun SettingsScreen(onAccentChanged: (String) -> Unit = {}) {
         topBar = {
             TopAppBar(
                 title = { Text("Настройки", fontSize = 28.sp, fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Назад")
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
                 )
@@ -423,7 +433,18 @@ fun SettingsScreen(onAccentChanged: (String) -> Unit = {}) {
                 }
             }
 
-            Spacer(Modifier.height(32.dp))
+            // ── Выход из аккаунта ─────────────────────────────────────────
+            Spacer(Modifier.height(8.dp))
+            HorizontalDivider()
+            Spacer(Modifier.height(8.dp))
+            TextButton(
+                onClick  = onLogout,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Выйти из аккаунта", color = MaterialTheme.colorScheme.error)
+            }
+
+            Spacer(Modifier.height(16.dp))
 
             // ── Подпись ───────────────────────────────────────────────────
             Text(

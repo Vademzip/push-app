@@ -3,6 +3,8 @@ package com.pushapp.ui.screens
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -19,7 +21,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -53,9 +58,12 @@ fun WorkoutInputFlow(
     var comment by remember { mutableStateOf(initialComment) }
     var isSkipped by remember { mutableStateOf(false) }
 
-    BackHandler { onDismiss() }
+    BackHandler {
+        if (currentStep > 0) currentStep-- else onDismiss()
+    }
 
     val totalSteps = 5 // 4 упражнения + комментарий
+    val swipeThresholdPx = with(LocalDensity.current) { 80.dp.toPx() }
 
     Column(
         modifier = Modifier
@@ -63,6 +71,25 @@ fun WorkoutInputFlow(
             .background(MaterialTheme.colorScheme.background)
             .systemBarsPadding()
             .imePadding()
+            .pointerInput(currentStep) {
+                awaitEachGesture {
+                    awaitFirstDown(requireUnconsumed = false)
+                    var dx = 0f
+                    var dy = 0f
+                    var childConsumed = false
+                    do {
+                        val event = awaitPointerEvent(PointerEventPass.Final)
+                        val change = event.changes.firstOrNull() ?: break
+                        if (!change.pressed) break
+                        if (change.isConsumed) childConsumed = true
+                        dx += change.position.x - change.previousPosition.x
+                        dy += change.position.y - change.previousPosition.y
+                    } while (true)
+                    if (!childConsumed && dx > swipeThresholdPx && dx > abs(dy) * 2f && currentStep > 0) {
+                        currentStep--
+                    }
+                }
+            }
     ) {
         // ── Шапка ──────────────────────────────────────────────────────────────
         Row(
@@ -106,8 +133,11 @@ fun WorkoutInputFlow(
             AnimatedContent(
                 targetState = currentStep,
                 transitionSpec = {
-                    (slideInHorizontally { it } + fadeIn()) togetherWith
-                            (slideOutHorizontally { -it } + fadeOut())
+                    if (targetState > initialState) {
+                        (slideInHorizontally { it } + fadeIn()) togetherWith (slideOutHorizontally { -it } + fadeOut())
+                    } else {
+                        (slideInHorizontally { -it } + fadeIn()) togetherWith (slideOutHorizontally { it } + fadeOut())
+                    }
                 },
                 label = "step"
             ) { step ->
@@ -137,7 +167,10 @@ fun WorkoutInputFlow(
             Button(
                 onClick = {
                     if (currentStep < totalSteps - 1) currentStep++
-                    else onSave(values[0], values[1], values[2], values[3], comment, isSkipped)
+                    else {
+                        val autoSkip = !isSkipped && values.all { it == 0 }
+                        onSave(values[0], values[1], values[2], values[3], comment, isSkipped || autoSkip)
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()

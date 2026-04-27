@@ -13,8 +13,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
 import com.pushapp.model.WorkoutEntry
 import com.pushapp.viewmodel.AuthViewModel
+import com.pushapp.viewmodel.FriendViewModel
 import com.pushapp.viewmodel.WorkoutViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -22,21 +24,27 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FeedScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewModel) {
-    val feed by workoutViewModel.feed.collectAsState()
-    val isLoading by workoutViewModel.isLoading.collectAsState()
+fun FeedScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewModel, friendViewModel: FriendViewModel) {
+    val feed        by workoutViewModel.feed.collectAsState()
+    val isLoading   by workoutViewModel.isLoading.collectAsState()
     val currentUser by authViewModel.currentUser.collectAsState()
+    val friends     by friendViewModel.friends.collectAsState()
 
-    LaunchedEffect(Unit) { workoutViewModel.loadFeed() }
+    val friendUids = remember(friends) { friends.map { it.uid } }
+
+    LaunchedEffect(friendUids) {
+        workoutViewModel.loadFriendsFeed(friendUids)
+    }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Лента", fontSize = 28.sp, fontWeight = FontWeight.Bold) }, colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)) }
     ) { padding ->
+        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
         when {
-            isLoading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+            isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
-            feed.isEmpty() -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+            feed.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("😶", fontSize = 64.sp)
                     Spacer(Modifier.height(12.dp))
@@ -50,7 +58,7 @@ fun FeedScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewModel)
                         .sortedByDescending { it.key }
                 }
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(padding),
+                    modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -85,6 +93,7 @@ fun FeedScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewModel)
                 }
             }
         }
+        } // Column
     }
 }
 

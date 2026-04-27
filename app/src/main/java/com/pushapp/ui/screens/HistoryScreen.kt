@@ -141,9 +141,10 @@ fun HistoryScreen(workoutViewModel: WorkoutViewModel, onChartInteraction: (Boole
 
             Spacer(Modifier.height(24.dp))
 
-            val primary   = MaterialTheme.colorScheme.primary
-            val secondary = MaterialTheme.colorScheme.secondary
-            val tertiary  = MaterialTheme.colorScheme.tertiary
+            val chartBlue   = Color(0xFF5585E8)
+            val chartGreen  = Color(0xFF43A047)
+            val chartOrange = Color(0xFFFF7043)
+            val chartPurple = Color(0xFF8B5CF6)
 
             if (period == HistoryPeriod.WEEK) {
                 val chartEntries = fillMissingDays(entries, days = 7)
@@ -155,21 +156,21 @@ fun HistoryScreen(workoutViewModel: WorkoutViewModel, onChartInteraction: (Boole
                     BarData(label, "", getValue(e))
                 }
 
-                ChartSection("Отжимания",    toBarData { it.pushups }, primary,   onChartInteraction)
+                ChartSection("Отжимания",    toBarData { it.pushups }, chartBlue,   onChartInteraction)
                 Spacer(Modifier.height(20.dp))
-                ChartSection("Приседания",   toBarData { it.squats },  secondary, onChartInteraction)
+                ChartSection("Приседания",   toBarData { it.squats },  chartGreen,  onChartInteraction)
                 Spacer(Modifier.height(20.dp))
-                ChartSection("Подтягивания", toBarData { it.pullups }, tertiary,  onChartInteraction)
+                ChartSection("Подтягивания", toBarData { it.pullups }, chartOrange, onChartInteraction)
                 Spacer(Modifier.height(20.dp))
-                ChartSection("Пресс",        toBarData { it.abs },     primary,   onChartInteraction)
+                ChartSection("Пресс",        toBarData { it.abs },     chartPurple, onChartInteraction)
             } else {
-                ChartSection("Отжимания",    toWeekBarData(entries) { it.pushups }, primary,   onChartInteraction)
+                ChartSection("Отжимания",    toWeekBarData(entries) { it.pushups }, chartBlue,   onChartInteraction)
                 Spacer(Modifier.height(20.dp))
-                ChartSection("Приседания",   toWeekBarData(entries) { it.squats },  secondary, onChartInteraction)
+                ChartSection("Приседания",   toWeekBarData(entries) { it.squats },  chartGreen,  onChartInteraction)
                 Spacer(Modifier.height(20.dp))
-                ChartSection("Подтягивания", toWeekBarData(entries) { it.pullups }, tertiary,  onChartInteraction)
+                ChartSection("Подтягивания", toWeekBarData(entries) { it.pullups }, chartOrange, onChartInteraction)
                 Spacer(Modifier.height(20.dp))
-                ChartSection("Пресс",        toWeekBarData(entries) { it.abs },     primary,   onChartInteraction)
+                ChartSection("Пресс",        toWeekBarData(entries) { it.abs },     chartPurple, onChartInteraction)
             }
             Spacer(Modifier.height(16.dp))
         }

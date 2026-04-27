@@ -26,12 +26,14 @@ import com.pushapp.ui.navigation.AppNavigation
 import com.pushapp.ui.theme.PushAppTheme
 import com.pushapp.util.ThemePrefs
 import com.pushapp.viewmodel.AuthViewModel
+import com.pushapp.viewmodel.FriendViewModel
 import com.pushapp.viewmodel.WorkoutViewModel
 import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
     private val authViewModel: AuthViewModel by viewModels()
     private val workoutViewModel: WorkoutViewModel by viewModels()
+    private val friendViewModel: FriendViewModel by viewModels()
 
     private var accentKey by mutableStateOf("lime")
 
@@ -62,6 +64,7 @@ class MainActivity : ComponentActivity() {
                     AppNavigation(
                         authViewModel    = authViewModel,
                         workoutViewModel = workoutViewModel,
+                        friendViewModel  = friendViewModel,
                         onUserLoggedIn   = {
                             if (NotificationHelper.isReminderEnabled(this))
                                 NotificationHelper.scheduleDailyReminder(this)

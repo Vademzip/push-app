@@ -10,27 +10,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pushapp.viewmodel.AuthViewModel
+import com.pushapp.viewmodel.FriendViewModel
 import com.pushapp.viewmodel.HistoryPeriod
 import com.pushapp.viewmodel.WorkoutViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CompareScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewModel) {
-    val currentUser by authViewModel.currentUser.collectAsState()
-    val allUsers by workoutViewModel.allUsers.collectAsState()
-    val myEntries by workoutViewModel.compareMyEntries.collectAsState()
+fun CompareScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewModel, friendViewModel: FriendViewModel) {
+    val currentUser  by authViewModel.currentUser.collectAsState()
+    val friends      by friendViewModel.friends.collectAsState()
+    val myEntries    by workoutViewModel.compareMyEntries.collectAsState()
     val otherEntries by workoutViewModel.compareOtherEntries.collectAsState()
-    val isLoading by workoutViewModel.isLoading.collectAsState()
+    val isLoading    by workoutViewModel.isLoading.collectAsState()
 
     val selectedCompareUserId by workoutViewModel.selectedCompareUserId.collectAsState()
     var selectedPeriod by remember { mutableStateOf(HistoryPeriod.WEEK) }
     var dropdownExpanded by remember { mutableStateOf(false) }
 
-    val otherUsers = allUsers.filter { it.uid != currentUser?.uid }
-    val selectedUser = otherUsers.find { it.uid == selectedCompareUserId }
+    val selectedFriend = friends.find { it.uid == selectedCompareUserId }
 
     LaunchedEffect(Unit) {
-        workoutViewModel.loadAllUsers()
+        // Сбрасываем выбор если выбранный юзер больше не друг
+        if (selectedCompareUserId != null && friends.none { it.uid == selectedCompareUserId }) {
+            workoutViewModel.selectCompareUser(null)
+        }
     }
 
     LaunchedEffect(selectedCompareUserId, selectedPeriod) {
@@ -53,7 +56,7 @@ fun CompareScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewMod
                 onExpandedChange = { dropdownExpanded = it }
             ) {
                 OutlinedTextField(
-                    value = selectedUser?.username ?: "Выбрать пользователя",
+                    value = selectedFriend?.username ?: "Выбрать друга",
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Сравнить с") },
@@ -66,18 +69,18 @@ fun CompareScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewMod
                     expanded = dropdownExpanded,
                     onDismissRequest = { dropdownExpanded = false }
                 ) {
-                    if (otherUsers.isEmpty()) {
+                    if (friends.isEmpty()) {
                         DropdownMenuItem(
-                            text = { Text("Другие пользователи не найдены") },
+                            text    = { Text("Нет друзей для сравнения") },
                             onClick = { dropdownExpanded = false },
                             enabled = false
                         )
                     }
-                    otherUsers.forEach { user ->
+                    friends.forEach { friend ->
                         DropdownMenuItem(
-                            text = { Text(user.username) },
+                            text = { Text(friend.username) },
                             onClick = {
-                                workoutViewModel.selectCompareUser(user.uid)
+                                workoutViewModel.selectCompareUser(friend.uid)
                                 dropdownExpanded = false
                             }
                         )
@@ -119,7 +122,7 @@ fun CompareScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewMod
 
                 else -> {
                     val myName = currentUser?.username ?: "Я"
-                    val otherName = selectedUser?.username ?: "Другой"
+                    val otherName = selectedFriend?.username ?: "Другой"
 
                     val myActive    = myEntries.filter { !it.skipped }
                     val otherActive = otherEntries.filter { !it.skipped }

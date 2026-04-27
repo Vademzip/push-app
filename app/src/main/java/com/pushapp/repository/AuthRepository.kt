@@ -18,9 +18,9 @@ class AuthRepository {
             val email = "${username.lowercase()}@pushapp.app"
             val result = auth.createUserWithEmailAndPassword(email, password).await()
             val uid = result.user?.uid ?: error("UID не получен")
-            val user = User(uid = uid, username = username)
+            val user = User(uid = uid, username = username, usernameLower = username.lowercase())
             db.collection("users").document(uid).set(
-                mapOf("uid" to uid, "username" to username)
+                mapOf("uid" to uid, "username" to username, "usernameLower" to username.lowercase())
             ).await()
             Result.success(user)
         } catch (e: Exception) {
@@ -33,9 +33,14 @@ class AuthRepository {
             val email = "${username.lowercase()}@pushapp.app"
             val result = auth.signInWithEmailAndPassword(email, password).await()
             val uid = result.user?.uid ?: error("UID не получен")
-            val doc = db.collection("users").document(uid).get().await()
-            val user = User(uid = uid, username = doc.getString("username") ?: username)
-            Result.success(user)
+            val ref = db.collection("users").document(uid)
+            val doc = ref.get().await()
+            val storedUsername = doc.getString("username") ?: username
+            // Миграция: дописываем usernameLower для старых аккаунтов
+            if (doc.getString("usernameLower") == null) {
+                ref.update("usernameLower", storedUsername.lowercase()).await()
+            }
+            Result.success(User(uid = uid, username = storedUsername, usernameLower = storedUsername.lowercase()))
         } catch (e: Exception) {
             Result.failure(e)
         }

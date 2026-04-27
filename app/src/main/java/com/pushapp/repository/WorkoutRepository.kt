@@ -57,6 +57,19 @@ class WorkoutRepository {
         }
     }
 
+    /** Лента только для заданных uid. Firestore whereIn ограничен 10 — режем на чанки. */
+    suspend fun getFeedForUsers(uids: List<String>): List<WorkoutEntry> {
+        if (uids.isEmpty()) return emptyList()
+        return try {
+            uids.chunked(10).flatMap { chunk ->
+                collection
+                    .whereIn("userId", chunk)
+                    .get().await()
+                    .documents.mapNotNull { it.toObject(WorkoutEntry::class.java) }
+            }.sortedByDescending { it.timestamp }.take(50)
+        } catch (e: Exception) { emptyList() }
+    }
+
     suspend fun getComments(workoutId: String): List<FeedComment> {
         return try {
             commentsCollection(workoutId)

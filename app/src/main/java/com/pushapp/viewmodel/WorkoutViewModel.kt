@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.pushapp.model.FeedComment
+import com.pushapp.model.FriendEntry
 import com.pushapp.model.User
 import com.pushapp.model.WorkoutEntry
 import com.pushapp.repository.AuthRepository
@@ -182,6 +183,15 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    fun loadFriendsFeed(uids: List<String>) {
+        val myUid = authRepo.currentUserId ?: return
+        viewModelScope.launch {
+            _isLoading.value = true
+            _feed.value = workoutRepo.getFeedForUsers(uids + myUid)
+            _isLoading.value = false
+        }
+    }
+
     // ── История ──────────────────────────────────────────────────────────────
 
     fun loadHistory(period: HistoryPeriod) {
@@ -237,6 +247,17 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
         }.apply()
     }
 
+    fun selectCalendarFriendByUid(uid: String, username: String) {
+        selectCalendarFriend(User(uid = uid, username = username))
+    }
+
+    fun restoreCalendarFriend(friends: List<FriendEntry>) {
+        if (_selectedCalendarFriend.value != null) return
+        val savedUid = prefs.getString(PREF_CALENDAR_FRIEND_UID, null) ?: return
+        val match = friends.find { it.uid == savedUid } ?: return
+        _selectedCalendarFriend.value = User(uid = match.uid, username = match.username)
+    }
+
     fun loadCalendarMonth(yearMonth: YearMonth) {
         val myUid = authRepo.currentUserId ?: return
         val fmt   = DateTimeFormatter.ISO_LOCAL_DATE
@@ -244,12 +265,12 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
         val to    = yearMonth.atEndOfMonth().format(fmt)
         viewModelScope.launch {
             val myEntries = workoutRepo.getUserWorkoutsForPeriod(myUid, from, to)
-            _calendarMyDates.value = myEntries.map { it.date }.toSet()
+            _calendarMyDates.value = myEntries.filter { !it.skipped }.map { it.date }.toSet()
 
             val friendUid = _selectedCalendarFriend.value?.uid
             if (friendUid != null) {
                 val friendEntries = workoutRepo.getUserWorkoutsForPeriod(friendUid, from, to)
-                _calendarFriendDates.value = friendEntries.map { it.date }.toSet()
+                _calendarFriendDates.value = friendEntries.filter { !it.skipped }.map { it.date }.toSet()
             } else {
                 _calendarFriendDates.value = emptySet()
             }
