@@ -64,7 +64,6 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
     private val _selectedCalendarFriend = MutableStateFlow<User?>(null)
     val selectedCalendarFriend: StateFlow<User?> = _selectedCalendarFriend
 
-    // UID выбранного пользователя для сравнения — восстанавливается из prefs
     private val _selectedCompareUserId = MutableStateFlow<String?>(
         prefs.getString(PREF_COMPARE_UID, null)
     )
@@ -76,6 +75,13 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
     private val today: String
         get() = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
 
+    // ── Кэш последних запросов — предотвращает повторную загрузку при свайпе ──
+    private var todayLoaded          = false
+    private var lastFeedUids: List<String>?                  = null
+    private var lastHistoryPeriod: HistoryPeriod?            = null
+    private var lastCalendarKey: Pair<YearMonth, String?>?   = null
+    private var lastCompareKey: Pair<String, HistoryPeriod>? = null
+
     companion object {
         private const val PREF_COMPARE_UID         = "selected_compare_uid"
         private const val PREF_CALENDAR_FRIEND_UID = "selected_calendar_friend_uid"
@@ -83,12 +89,14 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
 
     // ── Тренировки ───────────────────────────────────────────────────────────
 
-    fun loadTodayWorkout() {
+    fun loadTodayWorkout(forceRefresh: Boolean = false) {
+        if (!forceRefresh && todayLoaded) return
         val uid = authRepo.currentUserId ?: return
         viewModelScope.launch {
             _isTodayLoading.value = true
             _todayWorkout.value = workoutRepo.getTodayWorkout(uid, today)
             _isTodayLoading.value = false
+            todayLoaded = true
         }
     }
 
@@ -119,6 +127,7 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
             _saveSuccess.value = result.isSuccess
             if (result.isSuccess) {
                 _todayWorkout.value = entry
+                todayLoaded = true
                 if (!skipped) computeWeeklyInsight(uid, pushups, squats, pullups, abs)
             }
         }
@@ -173,7 +182,6 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
             val entries = workoutRepo.getFeed()
             _feed.value = entries
             _isLoading.value = false
-            // Предзагрузка комментариев для первых 10 записей
             entries.take(10).forEach { entry ->
                 launch {
                     val list = workoutRepo.getComments(entry.id)
@@ -183,18 +191,23 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun loadFriendsFeed(uids: List<String>) {
-        val myUid = authRepo.currentUserId ?: return
+    fun loadFriendsFeed(uids: List<String>, forceRefresh: Boolean = false) {
+        val myUid   = authRepo.currentUserId ?: return
+        val allUids = (uids + myUid).sorted()
+        if (!forceRefresh && lastFeedUids == allUids) return
+        lastFeedUids = allUids
         viewModelScope.launch {
             _isLoading.value = true
-            _feed.value = workoutRepo.getFeedForUsers(uids + myUid)
+            _feed.value = workoutRepo.getFeedForUsers(allUids)
             _isLoading.value = false
         }
     }
 
     // ── История ──────────────────────────────────────────────────────────────
 
-    fun loadHistory(period: HistoryPeriod) {
+    fun loadHistory(period: HistoryPeriod, forceRefresh: Boolean = false) {
+        if (!forceRefresh && lastHistoryPeriod == period) return
+        lastHistoryPeriod = period
         val uid = authRepo.currentUserId ?: return
         val (from, to) = periodRange(period)
         viewModelScope.launch {
@@ -209,7 +222,6 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
     fun loadAllUsers() {
         viewModelScope.launch {
             _allUsers.value = authRepo.getAllUsers()
-            // Восстанавливаем выбранного друга в календаре после загрузки списка
             val savedFriendUid = prefs.getString(PREF_CALENDAR_FRIEND_UID, null)
             if (savedFriendUid != null && _selectedCalendarFriend.value == null) {
                 _selectedCalendarFriend.value = _allUsers.value.find { it.uid == savedFriendUid }
@@ -226,7 +238,10 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
         }.apply()
     }
 
-    fun loadCompare(otherUserId: String, period: HistoryPeriod) {
+    fun loadCompare(otherUserId: String, period: HistoryPeriod, forceRefresh: Boolean = false) {
+        val key = otherUserId to period
+        if (!forceRefresh && lastCompareKey == key) return
+        lastCompareKey = key
         val myUid = authRepo.currentUserId ?: return
         val (from, to) = periodRange(period)
         viewModelScope.launch {
@@ -258,7 +273,10 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
         _selectedCalendarFriend.value = User(uid = match.uid, username = match.username)
     }
 
-    fun loadCalendarMonth(yearMonth: YearMonth) {
+    fun loadCalendarMonth(yearMonth: YearMonth, forceRefresh: Boolean = false) {
+        val key = yearMonth to _selectedCalendarFriend.value?.uid
+        if (!forceRefresh && lastCalendarKey == key) return
+        lastCalendarKey = key
         val myUid = authRepo.currentUserId ?: return
         val fmt   = DateTimeFormatter.ISO_LOCAL_DATE
         val from  = yearMonth.atDay(1).format(fmt)

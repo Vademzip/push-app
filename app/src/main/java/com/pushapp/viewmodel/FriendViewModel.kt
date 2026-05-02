@@ -34,6 +34,9 @@ class FriendViewModel : ViewModel() {
     private val _actionError = MutableStateFlow<String?>(null)
     val actionError: StateFlow<String?> = _actionError.asStateFlow()
 
+    private val _friendsInitialized = MutableStateFlow(false)
+    val friendsInitialized: StateFlow<Boolean> = _friendsInitialized.asStateFlow()
+
     private var entriesJob: Job? = null
 
     private val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
@@ -44,13 +47,15 @@ class FriendViewModel : ViewModel() {
                     _friends.value          = entries.filter { it.status == "accepted" }
                     _outgoingRequests.value = entries.filter { it.status == "pending" && it.sent }
                     _incomingRequests.value = entries.filter { it.status == "pending" && !it.sent }
+                    _friendsInitialized.value = true
                 }
             }
         } else {
-            _friends.value          = emptyList()
-            _incomingRequests.value = emptyList()
-            _outgoingRequests.value = emptyList()
-            _searchResults.value    = emptyList()
+            _friends.value            = emptyList()
+            _incomingRequests.value   = emptyList()
+            _outgoingRequests.value   = emptyList()
+            _searchResults.value      = emptyList()
+            _friendsInitialized.value = false
         }
     }
 

@@ -1,6 +1,8 @@
 package com.pushapp.ui.screens
 
+import android.content.Intent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -13,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,8 +33,10 @@ fun FriendsScreen(friendViewModel: FriendViewModel) {
     val searchResults    by friendViewModel.searchResults.collectAsState()
     val isSearching      by friendViewModel.isSearching.collectAsState()
 
-    var query by remember { mutableStateOf("") }
-    val showResults = query.length >= 2
+    var query          by remember { mutableStateOf("") }
+    var selectedFriend by remember { mutableStateOf<FriendEntry?>(null) }
+    val context        = LocalContext.current
+    val showResults    = query.length >= 2
 
     LaunchedEffect(query) {
         if (query.length >= 2) {
@@ -143,11 +148,10 @@ fun FriendsScreen(friendViewModel: FriendViewModel) {
                     if (friends.isNotEmpty()) {
                         item { SectionLabel("Друзья · ${friends.size}") }
                         items(friends, key = { it.uid }) { entry ->
-                            UserRow(username = entry.username) {
-                                TextButton(onClick = { friendViewModel.declineOrRemove(entry.uid) }) {
-                                    Text("Удалить", color = MaterialTheme.colorScheme.error)
-                                }
-                            }
+                            UserRow(
+                                username = entry.username,
+                                onClick  = { selectedFriend = entry }
+                            ) {}
                             HorizontalDivider(modifier = Modifier.padding(start = 72.dp))
                         }
                     }
@@ -155,6 +159,70 @@ fun FriendsScreen(friendViewModel: FriendViewModel) {
                     if (friends.isEmpty() && incomingRequests.isEmpty() && outgoingRequests.isEmpty()) {
                         item { EmptyFriendsState() }
                     }
+                }
+            }
+        }
+    }
+
+    selectedFriend?.let { friend ->
+        ModalBottomSheet(
+            onDismissRequest = { selectedFriend = null },
+            sheetState       = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            Column(
+                modifier            = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 40.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(
+                    modifier         = Modifier
+                        .size(72.dp)
+                        .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text       = friend.username.firstOrNull()?.uppercase() ?: "?",
+                        fontSize   = 30.sp,
+                        fontWeight = FontWeight.Bold,
+                        color      = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+                Text(
+                    text       = friend.username,
+                    fontSize   = 22.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(Modifier.height(4.dp))
+                Button(
+                    onClick = {
+                        val msg = "${friend.username}, хватит лежать на диване! 💪\n" +
+                                "Давай тренируйся, открывай PushApp!\n\n" +
+                                "pushapp://open"
+                        val intent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, msg)
+                        }
+                        context.startActivity(Intent.createChooser(intent, null))
+                        selectedFriend = null
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(50.dp)
+                ) {
+                    Text("👊  Пнуть", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+                TextButton(
+                    onClick = {
+                        friendViewModel.declineOrRemove(friend.uid)
+                        selectedFriend = null
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Удалить из друзей", color = MaterialTheme.colorScheme.error)
                 }
             }
         }
@@ -195,9 +263,16 @@ private fun SearchResultRow(user: User, status: RelationStatus, vm: FriendViewMo
 }
 
 @Composable
-private fun UserRow(username: String, trailing: @Composable () -> Unit) {
+private fun UserRow(
+    username: String,
+    onClick: (() -> Unit)? = null,
+    trailing: @Composable () -> Unit
+) {
     Row(
-        modifier          = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -215,10 +290,10 @@ private fun UserRow(username: String, trailing: @Composable () -> Unit) {
         }
         Spacer(Modifier.width(12.dp))
         Text(
-            text     = username,
-            style    = MaterialTheme.typography.bodyLarge,
+            text       = username,
+            style      = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Medium,
-            modifier = Modifier.weight(1f)
+            modifier   = Modifier.weight(1f)
         )
         trailing()
     }
@@ -237,8 +312,8 @@ private fun SectionLabel(text: String) {
 @Composable
 private fun EmptyFriendsState() {
     Column(
-        modifier              = Modifier.fillMaxWidth().padding(top = 64.dp),
-        horizontalAlignment   = Alignment.CenterHorizontally
+        modifier            = Modifier.fillMaxWidth().padding(top = 64.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text("👥", fontSize = 56.sp)
         Spacer(Modifier.height(16.dp))

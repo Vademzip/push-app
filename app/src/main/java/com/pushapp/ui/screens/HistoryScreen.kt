@@ -8,14 +8,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pushapp.model.WorkoutEntry
@@ -76,6 +79,14 @@ fun HistoryScreen(workoutViewModel: WorkoutViewModel, onChartInteraction: (Boole
         workoutViewModel.loadHistory(period)
     }
 
+    val pullToRefreshState = rememberPullToRefreshState()
+    if (pullToRefreshState.isRefreshing) {
+        LaunchedEffect(true) {
+            workoutViewModel.loadHistory(period, forceRefresh = true)
+            pullToRefreshState.endRefresh()
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -84,10 +95,15 @@ fun HistoryScreen(workoutViewModel: WorkoutViewModel, onChartInteraction: (Boole
             )
         }
     ) { padding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .nestedScroll(pullToRefreshState.nestedScrollConnection)
+        ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
@@ -105,12 +121,11 @@ fun HistoryScreen(workoutViewModel: WorkoutViewModel, onChartInteraction: (Boole
             }
             Spacer(Modifier.height(16.dp))
 
-            if (isLoading) {
+            if (isLoading && !pullToRefreshState.isRefreshing) {
                 Box(Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
-                return@Column
-            }
+            } else {
 
             val activeEntries = entries.filter { !it.skipped }
 
@@ -173,7 +188,13 @@ fun HistoryScreen(workoutViewModel: WorkoutViewModel, onChartInteraction: (Boole
                 ChartSection("Пресс",        toWeekBarData(entries) { it.abs },     chartPurple, onChartInteraction)
             }
             Spacer(Modifier.height(16.dp))
+            } // else
         }
+        PullToRefreshContainer(
+            state    = pullToRefreshState,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
+        } // Box
     }
 }
 

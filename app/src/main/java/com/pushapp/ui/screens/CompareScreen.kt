@@ -4,9 +4,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.pushapp.viewmodel.AuthViewModel
@@ -40,13 +43,26 @@ fun CompareScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewMod
         selectedCompareUserId?.let { workoutViewModel.loadCompare(it, selectedPeriod) }
     }
 
+    val pullToRefreshState = rememberPullToRefreshState()
+    if (pullToRefreshState.isRefreshing) {
+        LaunchedEffect(true) {
+            selectedCompareUserId?.let { workoutViewModel.loadCompare(it, selectedPeriod, forceRefresh = true) }
+            pullToRefreshState.endRefresh()
+        }
+    }
+
     Scaffold(
         topBar = { TopAppBar(title = { Text("Сравнение") }, colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)) }
     ) { padding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .nestedScroll(pullToRefreshState.nestedScrollConnection)
+        ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
@@ -115,7 +131,7 @@ fun CompareScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewMod
                     )
                 }
 
-                isLoading -> Box(
+                isLoading && !pullToRefreshState.isRefreshing -> Box(
                     Modifier.fillMaxWidth().height(160.dp),
                     contentAlignment = Alignment.Center
                 ) { CircularProgressIndicator() }
@@ -149,6 +165,11 @@ fun CompareScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewMod
                 }
             }
         }
+        PullToRefreshContainer(
+            state    = pullToRefreshState,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
+        } // Box
     }
 }
 

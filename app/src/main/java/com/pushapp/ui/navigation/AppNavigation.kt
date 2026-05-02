@@ -5,11 +5,12 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.pager.HorizontalPager
@@ -97,34 +98,31 @@ private fun MainScaffold(
     Scaffold(
         containerColor = AppBackground,
         bottomBar = {
-            Box(modifier = Modifier.fillMaxWidth()) {
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .padding(horizontal = 20.dp, vertical = 12.dp)
-                        .shadow(elevation = 20.dp, shape = pillShape, ambientColor = AppBackground)
-                        .clip(pillShape)
-                        .background(AppNavBar)
-                )
-                NavigationBar(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(84.dp)
-                        .padding(horizontal = 24.dp, vertical = 12.dp),
-                    containerColor = androidx.compose.ui.graphics.Color.Transparent,
-                    tonalElevation = 0.dp,
-                    windowInsets   = WindowInsets(0)
-                ) {
-                    bottomNavItems.forEachIndexed { index, screen ->
-                        NavigationBarItem(
-                            icon     = { Icon(screen.icon, contentDescription = null) },
-                            selected = pagerState.currentPage == index,
-                            onClick  = { scope.launch { pagerState.animateScrollToPage(index) } },
-                            colors   = NavigationBarItemDefaults.colors(
-                                selectedIconColor   = AppBackground,
-                                unselectedIconColor = AppOnSurfaceVar,
-                                indicatorColor      = MaterialTheme.colorScheme.primary
-                            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .shadow(elevation = 20.dp, shape = pillShape, ambientColor = AppBackground)
+                    .clip(pillShape)
+                    .background(AppNavBar)
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                bottomNavItems.forEachIndexed { index, screen ->
+                    val selected = pagerState.currentPage == index
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(pillShape)
+                            .background(if (selected) MaterialTheme.colorScheme.primary else androidx.compose.ui.graphics.Color.Transparent)
+                            .clickable { scope.launch { pagerState.animateScrollToPage(index) } }
+                            .padding(vertical = 10.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = screen.icon,
+                            contentDescription = null,
+                            tint = if (selected) AppBackground else AppOnSurfaceVar
                         )
                     }
                 }

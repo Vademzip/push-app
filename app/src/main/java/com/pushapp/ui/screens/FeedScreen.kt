@@ -7,9 +7,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,70 +33,94 @@ fun FeedScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewModel,
     val currentUser by authViewModel.currentUser.collectAsState()
     val friends     by friendViewModel.friends.collectAsState()
 
+    val friendsInitialized by friendViewModel.friendsInitialized.collectAsState()
     val friendUids = remember(friends) { friends.map { it.uid } }
 
-    LaunchedEffect(friendUids) {
-        workoutViewModel.loadFriendsFeed(friendUids)
+    // Ждём первого снимка Firestore — исключает преждевременную загрузку с пустым списком друзей
+    val triggerKey = if (friendsInitialized) friendUids else null
+    LaunchedEffect(triggerKey) {
+        triggerKey?.let { workoutViewModel.loadFriendsFeed(it) }
+    }
+
+    val pullToRefreshState = rememberPullToRefreshState()
+    if (pullToRefreshState.isRefreshing) {
+        LaunchedEffect(true) {
+            workoutViewModel.loadFriendsFeed(friendUids, forceRefresh = true)
+            pullToRefreshState.endRefresh()
+        }
     }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Лента", fontSize = 28.sp, fontWeight = FontWeight.Bold) }, colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)) }
     ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-        when {
-            isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .nestedScroll(pullToRefreshState.nestedScrollConnection)
+        ) {
+            val grouped = remember(feed) {
+                feed.groupBy { it.date }
+                    .entries
+                    .sortedByDescending { it.key }
             }
-            feed.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("😶", fontSize = 64.sp)
-                    Spacer(Modifier.height(12.dp))
-                    Text("Пока нет записей", style = MaterialTheme.typography.titleMedium)
-                }
-            }
-            else -> {
-                val grouped = remember(feed) {
-                    feed.groupBy { it.date }
-                        .entries
-                        .sortedByDescending { it.key }
-                }
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    grouped.forEach { (date, dayEntries) ->
-                        item(key = "header_$date") {
-                            val todayStr = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
-                            val yesterdayStr = LocalDate.now().minusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE)
-                            val headerLabel = when (date) {
-                                todayStr -> "Сегодня"
-                                yesterdayStr -> "Вчера"
-                                else -> try {
-                                    LocalDate.parse(date).format(
-                                        DateTimeFormatter.ofPattern("d MMMM", Locale("ru"))
-                                    )
-                                } catch (e: Exception) { date }
-                            }
-                            Text(
-                                text = headerLabel,
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-                            )
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                when {
+                    isLoading && !pullToRefreshState.isRefreshing -> item {
+                        Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator()
                         }
-                        items(dayEntries, key = { it.id }) { entry ->
-                            FeedCard(
-                                entry = entry,
-                                currentUsername = currentUser?.username ?: "",
-                                workoutViewModel = workoutViewModel
-                            )
+                    }
+                    feed.isEmpty() -> item {
+                        Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("😶", fontSize = 64.sp)
+                                Spacer(Modifier.height(12.dp))
+                                Text("Пока нет записей", style = MaterialTheme.typography.titleMedium)
+                            }
+                        }
+                    }
+                    else -> {
+                        grouped.forEach { (date, dayEntries) ->
+                            item(key = "header_$date") {
+                                val todayStr = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+                                val yesterdayStr = LocalDate.now().minusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE)
+                                val headerLabel = when (date) {
+                                    todayStr -> "Сегодня"
+                                    yesterdayStr -> "Вчера"
+                                    else -> try {
+                                        LocalDate.parse(date).format(
+                                            DateTimeFormatter.ofPattern("d MMMM", Locale("ru"))
+                                        )
+                                    } catch (e: Exception) { date }
+                                }
+                                Text(
+                                    text = headerLabel,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                                )
+                            }
+                            items(dayEntries, key = { it.id }) { entry ->
+                                FeedCard(
+                                    entry = entry,
+                                    currentUsername = currentUser?.username ?: "",
+                                    workoutViewModel = workoutViewModel
+                                )
+                            }
                         }
                     }
                 }
             }
+            PullToRefreshContainer(
+                state    = pullToRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
         }
-        } // Column
     }
 }
 

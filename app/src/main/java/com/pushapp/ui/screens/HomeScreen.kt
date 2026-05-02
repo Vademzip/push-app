@@ -1,5 +1,6 @@
 package com.pushapp.ui.screens
 
+import android.content.Intent
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -9,11 +10,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
@@ -119,15 +122,51 @@ fun HomeScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewModel,
 
 @Composable
 private fun TodayCard(entry: WorkoutEntry) {
+    val context = LocalContext.current
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text(
-            text = "Сегодня",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Сегодня",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            IconButton(
+                onClick = {
+                    val lines = buildList {
+                        if (entry.pushups > 0) add("💪 Отжимания: ${entry.pushups}")
+                        if (entry.squats  > 0) add("🦵 Приседания: ${entry.squats}")
+                        if (entry.pullups > 0) add("🏋️ Подтягивания: ${entry.pullups}")
+                        if (entry.abs     > 0) add("🤸 Пресс: ${entry.abs}")
+                    }
+                    val stats = if (lines.isEmpty()) "Тренировка завершена!" else lines.joinToString("\n")
+                    val comment = if (entry.comment.isNotBlank()) "\n\n\"${entry.comment}\"" else ""
+                    val msg = "Сегодня я сделал:\n$stats$comment\n\nТренируйся вместе со мной в PushApp!\npushapp://open"
+                    context.startActivity(
+                        Intent.createChooser(
+                            Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, msg)
+                            }, null
+                        )
+                    )
+                },
+                modifier = Modifier.size(36.dp)
+            ) {
+                Icon(
+                    Icons.Default.Share,
+                    contentDescription = "Поделиться",
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -161,15 +200,44 @@ private fun TodayCard(entry: WorkoutEntry) {
 
 @Composable
 private fun RestDayCard(entry: WorkoutEntry) {
+    val context = LocalContext.current
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text(
-            text = "Сегодня",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Сегодня",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            IconButton(
+                onClick = {
+                    val comment = if (entry.comment.isNotBlank()) "\n\n\"${entry.comment}\"" else ""
+                    val msg = "Сегодня у меня день отдыха 😴$comment\n\nСледи за моими тренировками в PushApp!\npushapp://open"
+                    context.startActivity(
+                        Intent.createChooser(
+                            Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, msg)
+                            }, null
+                        )
+                    )
+                },
+                modifier = Modifier.size(36.dp)
+            ) {
+                Icon(
+                    Icons.Default.Share,
+                    contentDescription = "Поделиться",
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
