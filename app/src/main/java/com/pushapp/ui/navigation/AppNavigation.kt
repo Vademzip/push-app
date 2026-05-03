@@ -1,18 +1,13 @@
 package com.pushapp.ui.navigation
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,11 +26,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.pushapp.ui.screens.*
-import com.pushapp.ui.theme.AppBackground
-import com.pushapp.ui.theme.AppNavBar
-import com.pushapp.ui.theme.AppOnSurfaceVar
+import com.pushapp.ui.theme.*
+import com.pushapp.viewmodel.AuthState
 import com.pushapp.viewmodel.AuthViewModel
 import com.pushapp.viewmodel.FriendViewModel
 import com.pushapp.viewmodel.WorkoutViewModel
@@ -63,21 +59,142 @@ fun AppNavigation(
     onUserLoggedIn: () -> Unit = {},
     onAccentChanged: (String) -> Unit = {}
 ) {
-    val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
+    val isLoggedIn  by authViewModel.isLoggedIn.collectAsState()
+    val currentUser by authViewModel.currentUser.collectAsState()
+    val authState   by authViewModel.authState.collectAsState()
 
     LaunchedEffect(isLoggedIn) {
         if (isLoggedIn) onUserLoggedIn()
     }
 
-    if (!isLoggedIn) {
-        AuthScreen(authViewModel = authViewModel)
-    } else {
-        MainScaffold(
-            authViewModel    = authViewModel,
-            workoutViewModel = workoutViewModel,
-            friendViewModel  = friendViewModel,
-            onAccentChanged  = onAccentChanged
-        )
+    when {
+        !isLoggedIn -> {
+            AuthScreen(authViewModel = authViewModel)
+        }
+        // Пока currentUser не загружен — ждём, ничего не показываем
+        currentUser == null -> {
+            Box(Modifier.fillMaxSize().background(AppBackground))
+        }
+        currentUser!!.displayName.isBlank() -> {
+            SetDisplayNameScreen(
+                authState = authState,
+                onConfirm = { name -> authViewModel.setDisplayName(name) },
+                onLogout  = { authViewModel.logout() }
+            )
+        }
+        else -> {
+            MainScaffold(
+                authViewModel    = authViewModel,
+                workoutViewModel = workoutViewModel,
+                friendViewModel  = friendViewModel,
+                onAccentChanged  = onAccentChanged
+            )
+        }
+    }
+}
+
+@Composable
+private fun SetDisplayNameScreen(
+    authState: AuthState,
+    onConfirm: (String) -> Unit,
+    onLogout: () -> Unit
+) {
+    var name by remember { mutableStateOf("") }
+    val pillShape  = RoundedCornerShape(50.dp)
+    val fieldShape = RoundedCornerShape(20.dp)
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(AppBackground)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text("👤", fontSize = 64.sp)
+            Spacer(Modifier.height(16.dp))
+            Text(
+                text       = "Как тебя зовут?",
+                fontSize   = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color      = AppOnBackground
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text  = "Имя будет видно друзьям",
+                style = MaterialTheme.typography.bodyMedium,
+                color = AppOnSurfaceVar
+            )
+            Spacer(Modifier.height(40.dp))
+
+            OutlinedTextField(
+                value         = name,
+                onValueChange = { name = it },
+                label         = { Text("Имя") },
+                modifier      = Modifier.fillMaxWidth(),
+                singleLine    = true,
+                shape         = fieldShape,
+                colors        = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor      = AppAccent,
+                    unfocusedBorderColor    = AppSurfaceBright,
+                    focusedLabelColor       = AppAccent,
+                    unfocusedLabelColor     = AppOnSurfaceVar,
+                    cursorColor             = AppAccent,
+                    focusedTextColor        = AppOnBackground,
+                    unfocusedTextColor      = AppOnBackground,
+                    focusedContainerColor   = AppSurfaceVariant,
+                    unfocusedContainerColor = AppSurfaceVariant,
+                )
+            )
+
+            if (authState is AuthState.Error) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text  = (authState as? AuthState.Error)?.message ?: "",
+                    color = AppError,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            Spacer(Modifier.height(24.dp))
+
+            Button(
+                onClick   = { onConfirm(name) },
+                modifier  = Modifier.fillMaxWidth().height(58.dp),
+                enabled   = authState !is AuthState.Loading && name.isNotBlank(),
+                shape     = pillShape,
+                colors    = ButtonDefaults.buttonColors(
+                    containerColor         = AppAccent,
+                    contentColor           = AppBackground,
+                    disabledContainerColor = AppAccentDim,
+                    disabledContentColor   = AppOnSurfaceVar
+                ),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
+            ) {
+                if (authState is AuthState.Loading) {
+                    CircularProgressIndicator(
+                        modifier    = Modifier.size(24.dp),
+                        strokeWidth = 2.dp,
+                        color       = AppBackground
+                    )
+                } else {
+                    Text("Продолжить", fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            TextButton(
+                onClick  = onLogout,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Выйти из аккаунта", color = AppOnSurfaceVar)
+            }
+        }
     }
 }
 
@@ -93,6 +210,8 @@ private fun MainScaffold(
     val pagerState   = rememberPagerState(pageCount = { bottomNavItems.size })
     val pillShape    = RoundedCornerShape(50)
     var showSettings by remember { mutableStateOf(false) }
+
+    BackHandler(enabled = showSettings) { showSettings = false }
 
     Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(
@@ -120,9 +239,9 @@ private fun MainScaffold(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = screen.icon,
+                            imageVector    = screen.icon,
                             contentDescription = null,
-                            tint = if (selected) AppBackground else AppOnSurfaceVar
+                            tint           = if (selected) AppBackground else AppOnSurfaceVar
                         )
                     }
                 }
@@ -151,7 +270,7 @@ private fun MainScaffold(
 
     // Кнопка настроек — правый верхний угол
     IconButton(
-        onClick = { showSettings = true },
+        onClick  = { showSettings = true },
         modifier = Modifier
             .align(Alignment.TopEnd)
             .statusBarsPadding()
@@ -160,7 +279,7 @@ private fun MainScaffold(
         Icon(
             Icons.Default.Settings,
             contentDescription = "Настройки",
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
+            tint               = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 

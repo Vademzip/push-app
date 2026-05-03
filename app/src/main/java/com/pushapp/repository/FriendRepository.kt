@@ -34,22 +34,22 @@ class FriendRepository {
     }
 
     /** Отправить заявку в друзья. Атомарно пишет в обе стороны. */
-    suspend fun sendRequest(toUid: String, toUsername: String): Result<Unit> {
+    suspend fun sendRequest(toUid: String, toUsername: String, toDisplayName: String): Result<Unit> {
         return try {
-            // Не перезаписывать, если отношение уже существует
             if (friendsCol(myUid).document(toUid).get().await().exists()) {
                 return Result.success(Unit)
             }
-            val myUsername = usersCol.document(myUid).get().await()
-                .getString("username") ?: ""
+            val myDoc = usersCol.document(myUid).get().await()
+            val myUsername = myDoc.getString("username") ?: ""
+            val myDisplayName = myDoc.getString("displayName") ?: ""
             val now = System.currentTimeMillis()
             db.batch().apply {
                 set(friendsCol(myUid).document(toUid), FriendEntry(
-                    uid = toUid, username = toUsername,
+                    uid = toUid, username = toUsername, displayName = toDisplayName,
                     status = "pending", sent = true, createdAt = now
                 ))
                 set(friendsCol(toUid).document(myUid), FriendEntry(
-                    uid = myUid, username = myUsername,
+                    uid = myUid, username = myUsername, displayName = myDisplayName,
                     status = "pending", sent = false, createdAt = now
                 ))
             }.commit().await()

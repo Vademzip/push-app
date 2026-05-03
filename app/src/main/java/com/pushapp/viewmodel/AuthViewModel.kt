@@ -51,14 +51,29 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    fun register(username: String, password: String) {
+    fun register(username: String, password: String, displayName: String) {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
-            repository.register(username.trim(), password).fold(
+            repository.register(username.trim(), password, displayName.trim()).fold(
                 onSuccess = { user ->
                     _currentUser.value = user
                     _isLoggedIn.value = true
                     _authState.value = AuthState.Success(user)
+                },
+                onFailure = { e ->
+                    _authState.value = AuthState.Error(friendlyError(e.message))
+                }
+            )
+        }
+    }
+
+    fun setDisplayName(name: String) {
+        viewModelScope.launch {
+            _authState.value = AuthState.Loading
+            repository.setDisplayName(name.trim()).fold(
+                onSuccess = {
+                    _currentUser.value = _currentUser.value?.copy(displayName = name.trim())
+                    _authState.value = AuthState.Idle
                 },
                 onFailure = { e ->
                     _authState.value = AuthState.Error(friendlyError(e.message))

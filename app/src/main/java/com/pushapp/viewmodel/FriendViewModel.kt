@@ -80,8 +80,8 @@ class FriendViewModel : ViewModel() {
         _searchResults.value = emptyList()
     }
 
-    fun sendRequest(toUid: String, toUsername: String) {
-        viewModelScope.launch { repo.sendRequest(toUid, toUsername) }
+    fun sendRequest(toUid: String, toUsername: String, toDisplayName: String) {
+        viewModelScope.launch { repo.sendRequest(toUid, toUsername, toDisplayName) }
     }
 
     fun acceptRequest(fromUid: String) {

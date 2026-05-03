@@ -79,7 +79,7 @@ fun HomeScreen(authViewModel: AuthViewModel, workoutViewModel: WorkoutViewModel,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(Modifier.height(8.dp))
-                Text(text = "Привет, ${currentUser?.username ?: ""}!", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                Text(text = "Привет, ${currentUser?.run { displayName.ifBlank { username } } ?: ""}!", fontSize = 28.sp, fontWeight = FontWeight.Bold)
                 Text(text = dateStr, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.height(32.dp))
                 when {
