@@ -19,6 +19,13 @@ import java.time.format.DateTimeFormatter
 
 enum class HistoryPeriod { DAY, WEEK, MONTH }
 
+data class FeedSocialStats(
+    val todayUids: Set<String> = emptySet(),
+    val weekEntries: List<WorkoutEntry> = emptyList(),
+    val streaks: Map<String, Int> = emptyMap(),
+    val personalBests: Map<String, Map<String, Int>> = emptyMap()
+)
+
 class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
 
     private val workoutRepo = WorkoutRepository()
@@ -72,12 +79,16 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
     private val _comments = MutableStateFlow<Map<String, List<FeedComment>>>(emptyMap())
     val comments: StateFlow<Map<String, List<FeedComment>>> = _comments
 
+    private val _socialStats = MutableStateFlow<FeedSocialStats?>(null)
+    val socialStats: StateFlow<FeedSocialStats?> = _socialStats
+
     private val today: String
         get() = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
 
     // ── Кэш последних запросов — предотвращает повторную загрузку при свайпе ──
-    private var todayLoaded          = false
+    private var todayLoaded              = false
     private var lastFeedUids: List<String>?                  = null
+    private var lastSocialStatsUids: List<String>?           = null
     private var lastHistoryPeriod: HistoryPeriod?            = null
     private var lastCalendarKey: Pair<YearMonth, String?>?   = null
     private var lastCompareKey: Pair<String, HistoryPeriod>? = null
@@ -293,6 +304,71 @@ class WorkoutViewModel(app: Application) : AndroidViewModel(app) {
                 _calendarFriendDates.value = emptySet()
             }
         }
+    }
+
+    // ── Социальная статистика ─────────────────────────────────────────────────
+
+    fun loadSocialStats(friendUids: List<String>, forceRefresh: Boolean = false) {
+        val myUid   = authRepo.currentUserId ?: return
+        val allUids = (friendUids + myUid).sorted()
+        if (!forceRefresh && lastSocialStatsUids == allUids) return
+        lastSocialStatsUids = allUids
+        viewModelScope.launch {
+            val fmt      = DateTimeFormatter.ISO_LOCAL_DATE
+            val now      = LocalDate.now()
+            val todayStr = now.format(fmt)
+            val weekAgo  = now.minusDays(6).format(fmt)
+            val from30   = now.minusDays(29).format(fmt)
+
+            val entries = workoutRepo.getEntriesForUsersFromDate(allUids, from30)
+
+            val todayUids = entries
+                .filter { it.date == todayStr && !it.skipped }
+                .map { it.userId }.toSet()
+
+            val weekEntries = entries.filter { it.date >= weekAgo && !it.skipped }
+
+            val streaks = allUids.associateWith { uid ->
+                calculateStreak(entries.filter { it.userId == uid })
+            }
+
+            val personalBests = allUids.associateWith { uid ->
+                val hist = entries.filter { it.userId == uid && it.date < todayStr && !it.skipped }
+                mapOf(
+                    "pushups" to (hist.maxOfOrNull { it.pushups } ?: 0),
+                    "squats"  to (hist.maxOfOrNull { it.squats }  ?: 0),
+                    "pullups" to (hist.maxOfOrNull { it.pullups } ?: 0),
+                    "abs"     to (hist.maxOfOrNull { it.abs }     ?: 0)
+                )
+            }
+
+            _socialStats.value = FeedSocialStats(
+                todayUids    = todayUids,
+                weekEntries  = weekEntries,
+                streaks      = streaks,
+                personalBests = personalBests
+            )
+        }
+    }
+
+    private fun calculateStreak(entries: List<WorkoutEntry>): Int {
+        val fmt       = DateTimeFormatter.ISO_LOCAL_DATE
+        val today     = LocalDate.now()
+        val yesterday = today.minusDays(1)
+        val dates = entries
+            .filter { !it.skipped }
+            .mapNotNull { runCatching { LocalDate.parse(it.date, fmt) }.getOrNull() }
+            .toSortedSet(compareByDescending { it })
+        if (dates.isEmpty()) return 0
+        val latest = dates.first()
+        if (latest < yesterday) return 0
+        var streak   = 0
+        var expected = latest
+        for (date in dates) {
+            if (date == expected) { streak++; expected = expected.minusDays(1) }
+            else if (date < expected) break
+        }
+        return streak
     }
 
     // ── Комментарии ───────────────────────────────────────────────────────────

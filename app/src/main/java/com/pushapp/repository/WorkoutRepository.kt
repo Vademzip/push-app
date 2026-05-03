@@ -91,6 +91,20 @@ class WorkoutRepository {
         }
     }
 
+    /** Все записи для нескольких пользователей начиная с fromDate (клиентская фильтрация). */
+    suspend fun getEntriesForUsersFromDate(uids: List<String>, fromDate: String): List<WorkoutEntry> {
+        if (uids.isEmpty()) return emptyList()
+        return try {
+            uids.chunked(10).flatMap { chunk ->
+                collection
+                    .whereIn("userId", chunk)
+                    .get().await()
+                    .documents.mapNotNull { it.toObject(WorkoutEntry::class.java) }
+                    .filter { it.date >= fromDate }
+            }
+        } catch (e: Exception) { emptyList() }
+    }
+
     suspend fun getUserWorkouts(userId: String): List<WorkoutEntry> {
         return try {
             collection
